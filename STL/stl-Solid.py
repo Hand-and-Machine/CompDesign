@@ -28,6 +28,13 @@ class Triangle:
 		stl_str.append("endfacet")
 		return stl_str
 
+	def translate(self, trans):
+
+		trans_vec = np.asarray(trans)
+		p1 = p1 + trans_vec
+		p2 = p2 + trans_vec
+		p3 = p3 + trans_vec
+
 
 class Solid:
 
@@ -43,6 +50,16 @@ class Solid:
 		for i in range(0, num_pts-2):
 			t = Triangle(pts[0], pts[i+1], pts[i+2])
 			self.triangles.append(t)
+
+	def join_solid(self, solid):
+
+		for t in solid.triangles:
+			self.triangles.append(t)
+
+	def translate(self, trans):
+
+		for t in self.triangles: t.translate(trans)
+
 
 	## danger! this will overwrite files
 	def gen_file(self):
