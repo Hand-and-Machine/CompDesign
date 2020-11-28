@@ -1,4 +1,4 @@
-solid test
+solid unit-regular-dodecahedron
 facet normal 0.0 0.0 -1.0 
 outer loop
 vertex 0.8506508083520399 0.0 0.0 
@@ -251,4 +251,4 @@ vertex 0.6881909602355868 0.5000000000000004 2.2270327288232146
 vertex -0.2628655560595667 0.8090169943749478 2.2270327288232146 
 endloop
 endfacet
-endsolid test
+endsolid unit-regular-dodecahedron

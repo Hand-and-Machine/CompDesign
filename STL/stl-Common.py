@@ -53,6 +53,40 @@ def equidistant_pt(p1, p2, p3, d):
 		new_pt = cc + height * dir_vec / np.linalg.norm(dir_vec)
 		return new_pt
 
+## see diagram for explanation
+def fold_up(p1, p2, p3, theta, phi, length):
+
+	pv1 = np.asarray(p1)
+	pv2 = np.asarray(p2)
+	pv3 = np.asarray(p3)
+	v1 = pv1 - pv2
+	v2 = pv3 - pv2
+	normal = np.cross(v1, v2)
+	unit_normal = normal / np.linalg.norm(normal)
+
+	u1 = v1
+	u2 = v2 - v1 * np.dot(v1, v2) / np.linalg.norm(v1)**2
+	proj1 = np.cos(theta)
+	proj2 = np.cos(phi) * np.linalg.norm(v2) / np.linalg.norm(u2) - np.cos(theta) * np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(u2))
+	proj3 = np.sqrt(1 - proj1**2 - proj2**2)
+	x = u1 * proj1 / np.linalg.norm(u1) + u2 * proj2 / np.linalg.norm(u2) + unit_normal * proj3
+
+	return pv2 + x * length
+
+def complete_reg_polygon(p1, p2, p3, num_pts):
+
+	pv1 = np.asarray(p1)
+	pv2 = np.asarray(p2)
+	cc = circumcenter(p1, p2, p3)
+	cv = np.asarray(cc)
+	rv1 = pv1 - cv
+	rv2 = pv2 - cv
+	rv3 = rv2 - rv1 * np.dot(rv1, rv2) / np.linalg.norm(rv1)**2
+	rv3 = rv3 * np.linalg.norm(rv1) / np.linalg.norm(rv3)
+
+	pts = [cv + rv1 * np.cos(2 * np.pi * i / num_pts) + rv3 * np.sin(2 * np.pi * i / num_pts) for i in range(0, num_pts)]
+
+	return pts
 
 
 class Prism(Solid):

@@ -38,3 +38,30 @@ class UniformSolid(Solid):
 			cb = Prism("temp", base_pts, sidelength)
 
 			self.join_solid(cb)
+
+		if id == 4:
+
+			base_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, -1), 5, adjust_sidelength=sidelength)
+			## inclined_pt = fold_up(base_pts[0], base_pts[1], base_pts[2], 3 * np.pi / 5, 3 * np.pi / 5, 1)
+			## bs1_pts = complete_reg_polygon(inclined_pt, base_pts[1], base_pts[0], 5)
+			bottom_half_faces = [base_pts]
+			top_half_faces = []
+
+			for i in range(0, 5):
+				inclined_pt = fold_up(base_pts[i], base_pts[(i + 1) % 5], base_pts[(i + 2) % 5], 3 * np.pi / 5, 3 * np.pi / 5, 1)
+				bottom_face_pts = complete_reg_polygon(inclined_pt, base_pts[(i + 1) % 5], base_pts[i], 5)
+				bottom_half_faces.append(bottom_face_pts)
+
+			for i in range(0,5):
+				bottom_face = bottom_half_faces[i + 1]
+				inclined_pt = fold_up(bottom_face[-2], bottom_face[-1], bottom_face[0], 3 * np.pi /5, 3 * np.pi / 5, 1)
+				top_face_pts = complete_reg_polygon(bottom_face[0], bottom_face[-1], inclined_pt, 5)
+				top_half_faces.append(top_face_pts)
+
+			tophalf_face = top_half_faces[0]
+			inclined_pt = fold_up(tophalf_face[2], tophalf_face[3], tophalf_face[4], 3 * np.pi / 5, 3 * np.pi / 5, 1)
+			topface = complete_reg_polygon(inclined_pt, tophalf_face[3], tophalf_face[2], 5)
+			top_half_faces.append(topface)
+
+			for f in bottom_half_faces: self.add_face(f)
+			for f in top_half_faces: self.add_face(f)
