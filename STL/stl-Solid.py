@@ -31,9 +31,9 @@ class Triangle:
 	def translate(self, trans):
 
 		trans_vec = np.asarray(trans)
-		p1 = p1 + trans_vec
-		p2 = p2 + trans_vec
-		p3 = p3 + trans_vec
+		self.p1 = self.p1 + trans_vec
+		self.p2 = self.p2 + trans_vec
+		self.p3 = self.p3 + trans_vec
 
 
 class Solid:

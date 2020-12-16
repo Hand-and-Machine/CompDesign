@@ -11,6 +11,7 @@ class UniformSolid(Solid):
 		
 		super().__init__(name)
 
+		## regular tetrahedron
 		## centered at the center of its base
 		if id == 1:
 
@@ -20,6 +21,7 @@ class UniformSolid(Solid):
 
 			self.join_solid(th)
 
+		## regular octahedron
 		## centered at its center
 		if id == 2:
 
@@ -32,6 +34,8 @@ class UniformSolid(Solid):
 			self.join_solid(top_pm)
 			self.join_solid(bottom_pm)
 
+		## cube
+		## centered at the center of its base
 		if id == 3:
 
 			base_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, -1), 4, adjust_sidelength=sidelength)
@@ -39,11 +43,11 @@ class UniformSolid(Solid):
 
 			self.join_solid(cb)
 
+		## regular dodecahedron
+		## centered at the center of its base
 		if id == 4:
 
 			base_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, -1), 5, adjust_sidelength=sidelength)
-			## inclined_pt = fold_up(base_pts[0], base_pts[1], base_pts[2], 3 * np.pi / 5, 3 * np.pi / 5, 1)
-			## bs1_pts = complete_reg_polygon(inclined_pt, base_pts[1], base_pts[0], 5)
 			bottom_half_faces = [base_pts]
 			top_half_faces = []
 
@@ -65,3 +69,37 @@ class UniformSolid(Solid):
 
 			for f in bottom_half_faces: self.add_face(f)
 			for f in top_half_faces: self.add_face(f)
+
+		## regular icosahedron
+		## centered at its bottom vertex
+		if id == 5:
+
+			middle_bottom_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, -1), 5, adjust_sidelength=sidelength)
+			bottom_pt = equidistant_pt(middle_bottom_pts[0], middle_bottom_pts[1], middle_bottom_pts[2], sidelength)
+			bottom_faces = []
+
+			for i in range(0, 5):
+				bottom_faces.append([middle_bottom_pts[(i + 1) % 5], middle_bottom_pts[i], bottom_pt])
+
+			middle_top_pts = []
+			for i in range(0, 5):
+				pent_pts = complete_reg_polygon(middle_bottom_pts[i], bottom_pt, middle_bottom_pts[(i + 2) % 5], 5)
+				middle_top_pts.append(pent_pts[-1])
+
+			middle_faces = []
+			for i in range(0, 5):
+				middle_faces.append([middle_bottom_pts[i], middle_bottom_pts[(i + 1) % 5], middle_top_pts[i]])
+				middle_faces.append([middle_bottom_pts[(i + 1) % 5], middle_top_pts[(i + 1) % 5], middle_top_pts[i]])
+
+			top_pt = equidistant_pt(middle_top_pts[2], middle_top_pts[1], middle_top_pts[0], sidelength)
+			top_faces = []
+
+			for i in range(0, 5):
+				top_faces.append([middle_top_pts[i], middle_top_pts[(i + 1) % 5], top_pt])
+
+			for f in bottom_faces: self.add_face(f)
+			for f in middle_faces: self.add_face(f)
+			for f in top_faces: self.add_face(f)
+
+			self.translate(-bottom_pt)
+
