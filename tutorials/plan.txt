@@ -1,0 +1,38 @@
+Prof. Buechley wants me to help come up with some math tutorials for students in her Computational Design class in the Spring. She says that they might have varying levels of math skills, so they might benefit from an introduction to some mathematical tools and concepts that are useful for computational design. For example, she mentioned that not all students might be comfortable working in polar/cylindrical/spherical coordinates.
+
+Here's a list of topics (off the top of my head) that might be good to cover:
+
+- Different coordinate systems
+	- 2D: Cartesian and polar
+		- Coordinate conversions between these 2
+		- Interesting shapes and their properties: cardioid, lemniscate, log spiral, ellipse, parabola, hyperbola
+	- 3D: rectangular, cylindrical, and spherical
+		- Coordinate conversions between these 3
+		- Interesting surfaces: paraboloid, hyperboloid (1/2 sheets), ellipsoid
+- Basic vector algebra
+	- Dot product and cross product
+		- The Right-hand Rule
+	- Vector projections
+		- Use projections to calculate an orthogonal basis (Gram-Schmidt)
+	- Angle between vectors
+	- Roots of unity
+	- Vectors as complex numbers, and algebraic transformations
+		- reflection across axes
+		- inversion across a circle
+- Different 3D objects and their representations
+	- Line: defined parametrically, or by a point and a vector
+		- given 2 points, find the line through them
+		- given a point and a plane, find the line through the point and normal to the plane
+		- given 2 intersecting planes, find the line where they intersect
+	- Plane: defined by an equation, or by a point and a normal vector
+		- given 3 points, find the plane containing them
+		- given 2 intersecting lines, find the plane containing them
+		- given a point and a plane, find the parallel plane through the point
+	- "Combining" points, vectors, lines, and planes in various ways
+		- Project a point onto a plane, a point onto a line, a line onto a plane, etc.
+		- Rotate a point about a line, rotate a point about another point (with two different angles), etc.
+- Geometric properties of curves
+	- Curl and torsion
+	- Osculating circle
+
+In general, being able to deal with vectors and 3D mathematical objects fluidly and comfortably will probably be super useful, much more so than just knowing various formulas associated with them.
