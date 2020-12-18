@@ -55,6 +55,7 @@ class Solid:
 		self.triangles = []
 		self.vertices = []
 		self.num_vertices = 0
+		self.edges = []
 		self.faces = []
 
 	## adds a vertex to the solid if it does not already exist... within a margin of error
@@ -68,20 +69,74 @@ class Solid:
 				if distance(v, self.vertices[i]) < self.error: return i
 		self.vertices.append(np.asarray(v))
 		self.num_vertices += 1
+		self.edges.append(set())
 		return self.num_vertices - 1
+
+	## adds an edge to the solid
+	## edges are stored redundantly - once under each vertex
+	def add_edge(self, v_id, w_id):
+
+		if max(v_id, w_id) >= self.num_vertices: return False
+		self.edges[v_id].add(w_id)
+		self.edges[w_id].add(v_id)
 
 	# adds a new (oriented) face to the solid, along with any necessary new vertices
 	# pts is a list of points (tuples) and ints, where the ints refer to preexisting points in the solid
 	def add_face(self, pts):
 
+		num_pts = len(pts)
 		vertex_ids = [ self.add_vertex(p) for p in pts ]
 
 		face = Face(vertex_ids)
 		self.faces.append(face)
 
+		for i in range(0, num_pts):
+			self.add_edge(vertex_ids[i], vertex_ids[(i + 1) % num_pts])
+
 	def translate(self, trans):
 
 		for v in self.vertices: v += np.asarray(trans)
+
+	def join_solid(self, solid):
+
+		for f in solid.faces:
+			pts = [solid.vertices[id] for id in f.vertices]
+			self.add_face(pts)
+
+	def truncate(self, proportion):
+
+		s = Solid("temp", error=self.error)
+
+		middle_points = [{} for v in self.vertices]
+
+		for i in range(0, self.num_vertices):
+
+			vertex = self.vertices[i]
+			num_adjacent = len(self.edges[i])
+
+			adjacent_vertex_ids = [id for id in self.edges[i]]
+			adjacent_vertices = [self.vertices[id] for id in adjacent_vertex_ids]
+			normal = average_direction([np.asarray(vertex) - np.asarray(p) for p in adjacent_vertices])
+			adjacent_vertex_ids_ordered = counterclockwise_order(normal, [v - vertex for v in self.vertices], vec_ids=adjacent_vertex_ids)
+			adjacent_vertices_ordered = [self.vertices[id] for id in adjacent_vertex_ids_ordered]
+			cut_vertices_ordered = cut_tip(vertex, adjacent_vertices_ordered, proportion)
+			print(len(cut_vertices_ordered))
+			s.add_face(cut_vertices_ordered)
+			for j in range(0, num_adjacent):
+				middle_points[i][adjacent_vertex_ids_ordered[j]] = cut_vertices_ordered[j]
+
+		for f in self.faces:
+			pts = f.vertices
+			num_pts = f.num_sides
+			new_pts = []
+			for i in range(0, num_pts):
+				p1 = pts[i]
+				p2 = pts[(i + 1) % num_pts]
+				new_pts.append(middle_points[p1][p2])
+				new_pts.append(middle_points[p2][p1])
+			s.add_face(new_pts)
+
+		return s
 
 	def build_face(self, face):
 

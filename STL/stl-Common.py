@@ -73,6 +73,7 @@ def fold_up(p1, p2, p3, theta, phi, length):
 
 	return pv2 + x * length
 
+# given 3 points of a regular polygon and the number of  points, finds the rest of the points
 def complete_reg_polygon(p1, p2, p3, num_pts):
 
 	pv1 = np.asarray(p1)
@@ -88,6 +89,7 @@ def complete_reg_polygon(p1, p2, p3, num_pts):
 
 	return pts
 
+# rotates a set of points about an oriented line defined by a point and vector
 def rotate_points_about_line(points, base_pt, vec, theta):
 
 	pvs = [np.asarray(p) for p in points]
@@ -106,7 +108,56 @@ def rotate_points_about_line(points, base_pt, vec, theta):
 
 	return new_pvs
 
+## gives the angle between two vectors' projections into the plane defined by a given normal vector, measured counterclockwise
+def angle_in_plane(normal, vec1, vec2):
 
+	normal_vec = np.asarray(normal)
+	v1 = np.asarray(vec1)
+	v2 = np.asarray(vec2)
+
+	proj1 = v1 - normal_vec * np.dot(v1, normal_vec) / np.linalg.norm(normal_vec)**2
+	proj2 = v2 - normal_vec * np.dot(v2, normal_vec) / np.linalg.norm(normal_vec)**2
+	cos = np.dot(proj1, proj2) / (np.linalg.norm(proj1) * np.linalg.norm(proj2))
+	angle = np.arccos(min(1, max(-1, cos)))
+	if np.dot(normal_vec, np.cross(proj1, proj2)) < 0: angle = 2 * np.pi - angle
+
+	return angle
+
+def counterclockwise_order(normal_vec, vecs, vec_ids=False):
+
+	base_vec = vecs[0]
+
+	if vec_ids != False:
+		return sorted(vec_ids, key = lambda id: angle_in_plane(normal_vec, base_vec, vecs[id]))
+	else:
+		return sorted(vecs, key = lambda v: angle_in_plane(normal_vec, base_vec, v))
+
+def average_direction(vecs):
+
+	vs = [np.asarray(v) for v in vecs]
+	uvs = [v / np.linalg.norm(v) for v in vs]
+	av = sum(uvs)
+	av = av / np.linalg.norm(av)
+
+	return av
+
+# returns the points of the polygon yielded by slicing the tip off of a pyramid
+# NOTE: the other_points must be given in counterclockwise order about the tip
+def cut_tip(tip_point, other_points, proportion):
+
+	tv = np.asarray(tip_point)
+	pvs = [np.asarray(p) for p in other_points]
+	dvs = [v - tv for v in pvs]
+	udvs = [dv / np.linalg.norm(dv) for dv in dvs]
+	nv = sum(udvs)
+	max_dist = max([abs(np.dot(dv, nv)) / np.linalg.norm(nv) for dv in dvs])
+	distance = proportion * max_dist
+	nv = - distance * nv / np.linalg.norm(nv)
+	cv = tv - nv
+	projvs = [udv * distance**2 / abs(np.dot(udv, nv)) + nv for udv in udvs]
+	face_vertices = [cv + v for v in projvs]
+
+	return face_vertices
 
 class Prism(Solid):
 
