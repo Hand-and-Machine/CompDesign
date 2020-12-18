@@ -33,6 +33,13 @@ class Triangle:
 		stl_str.append("endfacet")
 		return stl_str
 
+	def translate(self, trans):
+
+		trans_vec = np.asarray(trans)
+		self.p1 = self.p1 + trans_vec
+		self.p2 = self.p2 + trans_vec
+		self.p3 = self.p3 + trans_vec
+
 class Face:
 
 	def __init__(self, vertex_ids):
@@ -41,10 +48,6 @@ class Face:
 		self.num_sides = len(vertex_ids)
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
-
-	def shift_ids(num):
-
-		for id in self.vertices: id += num
 
 class Solid:
 
@@ -55,48 +58,56 @@ class Solid:
 		self.triangles = []
 		self.vertices = []
 		self.num_vertices = 0
-		self.faces = []
+		self.edges = []
 
 	## adds a vertex to the solid if it does not already exist... within a margin of error
 	## and returns its index in the self.vertices array (these are the IDs of these vertices)
-	def add_vertex(self, v, check_equality=True):
+	def add_vertex(self, v):
 
-		if type(v) == int: return v
-
-		if check_equality:
-			for i in range(0, len(self.vertices)):
-				if distance(v, self.vertices[i]) < self.error: return i
+		for i in range(0, len(self.vertices)):
+			if distance(v, self.vertices[i]) < self.error: return i
 		self.vertices.append(np.asarray(v))
+		self.edges.append(set())
 		self.num_vertices += 1
 		return self.num_vertices - 1
 
-	# adds a new (oriented) face to the solid, along with any necessary new vertices
-	# pts is a list of points (tuples) and ints, where the ints refer to preexisting points in the solid
+	## given the IDs of two vertices, creates an edge between them and stores it in self.edges
+	## the edge is stored in two places: under the index of v and under the index of w
+	def add_edge(self, v_id, w_id):
+
+		if max(v_id, w_id) >= self.num_vertices: 
+			return False
+		else:
+			# duplicates won't be added, because self.vertices is an array of sets
+			self.edges[v_id].add(w_id)
+			self.edges[w_id].add(v_id)
+
+	## note: this only works for convex faces
 	def add_face(self, pts):
 
-		vertex_ids = [ self.add_vertex(p) for p in pts ]
-
-		face = Face(vertex_ids)
-		self.faces.append(face)
-
-	def translate(self, trans):
-
-		for v in self.vertices: v += np.asarray(trans)
-
-	def build_face(self, face):
-
-		pts = [ self.vertices[id] for id in face.vertices ]
 		num_pts = len(pts)
+
+		## add points and edges
+		last_id = 0
+		for p in pts: last_id = self.add_vertex(p)
+		for i in range(0, num_pts):
+			self.add_edge(last_id - num_pts + i + 1, last_id - num_pts + (i + 1) % num_pts + 1)
 
 		# generate triangles for STL file
 		for i in range(0, num_pts-2):
 			t = Triangle(pts[0], pts[i+1], pts[i+2])
 			self.triangles.append(t)
 
-	def build(self):
+	## WARNING! This has not yet been updated to integrate two solids' vertices and edges - only their STL triangles!
+	def join_solid(self, solid):
 
-		self.triangles = []
-		for f in self.faces: self.build_face(f)
+		for t in solid.triangles:
+			self.triangles.append(t)
+
+	def translate(self, trans):
+
+		for t in self.triangles: t.translate(trans)
+		for v in self.vertices: v += np.asarray(trans)
 
 	## danger! this will overwrite files
 	def gen_file(self):
@@ -113,3 +124,4 @@ class Solid:
 		for l in filetext: 
 			f.write(l+"\n")
 		f.close()
+
