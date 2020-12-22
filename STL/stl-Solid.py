@@ -64,13 +64,18 @@ class Solid:
 
 		if type(v) == int: return v
 
+		match = False
 		if check_equality:
 			for i in range(0, len(self.vertices)):
-				if distance(v, self.vertices[i]) < self.error: return i
-		self.vertices.append(np.asarray(v))
-		self.num_vertices += 1
-		self.edges.append(set())
-		return self.num_vertices - 1
+				if distance(v, self.vertices[i]) < self.error: 
+					match = True
+					return i
+
+		if not match:
+			self.vertices.append(np.asarray(v))
+			self.num_vertices += 1
+			self.edges.append(set())
+			return self.num_vertices - 1
 
 	## adds an edge to the solid
 	## edges are stored redundantly - once under each vertex
@@ -90,9 +95,7 @@ class Solid:
 		# failsafe to protect against duplicate entries
 		checked_vertex_ids = []
 		for i in range(0, num_pts):
-			if checked_vertex_ids:
-				if checked_vertex_ids[-1] != vertex_ids[i]: checked_vertex_ids.append(vertex_ids[i])
-			else:
+			if vertex_ids[(i + 1) % num_pts] != vertex_ids[i]:
 				checked_vertex_ids.append(vertex_ids[i])
 		num_pts = len(checked_vertex_ids)
 		vertex_ids = checked_vertex_ids
@@ -176,7 +179,7 @@ class Solid:
 
 	def truncate(self, proportion):
 
-		s = Solid(self.name, error=1.0E-14)
+		s = Solid(self.name)
 		s.join_solid(self)
 
 		for id in range(0, self.num_vertices):
