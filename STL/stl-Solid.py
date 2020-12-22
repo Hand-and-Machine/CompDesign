@@ -87,6 +87,16 @@ class Solid:
 		num_pts = len(pts)
 		vertex_ids = [ self.add_vertex(p.copy()) for p in pts ]
 
+		# failsafe to protect against duplicate entries
+		checked_vertex_ids = []
+		for i in range(0, num_pts):
+			if checked_vertex_ids:
+				if checked_vertex_ids[-1] != vertex_ids[i]: checked_vertex_ids.append(vertex_ids[i])
+			else:
+				checked_vertex_ids.append(vertex_ids[i])
+		num_pts = len(checked_vertex_ids)
+		vertex_ids = checked_vertex_ids
+
 		face = Face(vertex_ids)
 		self.faces.append(face)
 
@@ -175,6 +185,7 @@ class Solid:
 			adjacent_vertices = [np.asarray(self.vertices[edge_id]) for edge_id in self.edges[id]]
 			edge_vecs = [cut_vertex - av for av in adjacent_vertices]
 			cut_normal = sum(edge_vecs)
+			## sometimes this results in very small values of the cut_distance variable, and I'm not sure why
 			projections = [abs(np.dot(ev, cut_normal)) / np.linalg.norm(cut_normal) for ev in edge_vecs]
 			cut_distance = proportion * min(projections)
 			cut_point = cut_vertex - cut_distance * cut_normal / np.linalg.norm(cut_normal)
