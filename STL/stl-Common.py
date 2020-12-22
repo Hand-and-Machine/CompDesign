@@ -1,4 +1,4 @@
-class Prism(Solid):
+class RightPrism(Solid):
 
 	def __init__(self, name, base_pts, height, topped=True):
 

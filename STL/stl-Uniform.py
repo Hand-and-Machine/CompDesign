@@ -1,11 +1,11 @@
-## Here's a key for the different ID numbers of uniform solids:
+## Here's a key for the different ID numbers of Platonic solids:
 ## 1 - regular tetrahedron
 ## 2 - regular octahedron
 ## 3 - cube
 ## 4 - regular dodecahedron
 ## 5 - regular icosahedron
 
-class UniformSolid(Solid):
+class PlatonicSolid(Solid):
 
 	def __init__(self, name, id, sidelength):
 		

@@ -41,11 +41,6 @@ class Face:
 		self.num_sides = len(vertex_ids)
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
-
-	def shift_ids(self, num):
-
-		for id in self.vertices: id += num
-
 class Solid:
 
 	def __init__(self, name, error=1.0E-7):
