@@ -42,7 +42,7 @@ class Face:
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
 
-	def shift_ids(num):
+	def shift_ids(self, num):
 
 		for id in self.vertices: id += num
 
@@ -85,7 +85,7 @@ class Solid:
 	def add_face(self, pts):
 
 		num_pts = len(pts)
-		vertex_ids = [ self.add_vertex(p) for p in pts ]
+		vertex_ids = [ self.add_vertex(p.copy()) for p in pts ]
 
 		face = Face(vertex_ids)
 		self.faces.append(face)
@@ -100,41 +100,86 @@ class Solid:
 	def join_solid(self, solid):
 
 		for f in solid.faces:
-			pts = [solid.vertices[id] for id in f.vertices]
+			pts = [solid.vertices[id].copy() for id in f.vertices]
 			self.add_face(pts)
+
+	def overwrite(self, solid):
+
+		self.triangles = []
+		self.vertices = []
+		self.num_vertices = 0
+		self.edges = []
+		self.faces = []
+
+		self.join_solid(solid)
+
+	def plane_slice(self, plane_point, plane_normal):
+
+		s = Solid(self.name, error=self.error)
+
+		sliced_vertices = []
+		for id in range(0, self.num_vertices):
+			if side_of_plane(self.vertices[id], plane_point, plane_normal): 
+				sliced_vertices.append(id)
+
+		intermediate_vertices = [{} for v in self.vertices]
+		all_intermediate_vertices = []
+		num_intermediate_vertices = 0
+		edge_dict = [d.copy() for d in self.edges]
+		center_vec = np.array((0.0,0.0,0.0))
+		for id1 in range(0, self.num_vertices):
+			for id2 in edge_dict[id1]:
+				if id1 < id2:
+					v1 = self.vertices[id1]
+					v2 = self.vertices[id2]
+					if (id1 in sliced_vertices) != (id2 in sliced_vertices):
+						intermediate_vertex = segment_intersect_plane(v1, v2, plane_point, plane_normal)
+						intermediate_vertices[id1][id2] = intermediate_vertex
+						intermediate_vertices[id2][id1] = intermediate_vertex
+						all_intermediate_vertices.append(intermediate_vertex)
+						num_intermediate_vertices += 1
+						center_vec += intermediate_vertex
+		center_vec = center_vec / num_intermediate_vertices
+
+		for f in self.faces:
+			new_pts = []
+			for i in range(0, f.num_sides):
+				j = (i + 1) % f.num_sides
+				id1 = f.vertices[i]
+				id2 = f.vertices[j]
+				if (id2 in sliced_vertices) != (id1 in sliced_vertices):
+					new_pts.append(intermediate_vertices[id1][id2])
+					if id2 not in sliced_vertices:
+						new_pts.append(self.vertices[id2])
+				elif id2 not in sliced_vertices:
+					new_pts.append(self.vertices[id2])
+			if new_pts:
+				s.add_face(new_pts)
+
+		displacement_vecs = [v - center_vec for v in all_intermediate_vertices]
+		if displacement_vecs: 
+			ordered_displacement_vecs = counterclockwise_order(plane_normal, displacement_vecs)
+			ordered_intermediate_points = [v + center_vec for v in ordered_displacement_vecs]
+			s.add_face(ordered_intermediate_points)
+
+		return s
 
 	def truncate(self, proportion):
 
-		s = Solid("temp", error=self.error)
+		s = Solid(self.name, error=1.0E-14)
+		s.join_solid(self)
 
-		middle_points = [{} for v in self.vertices]
+		for id in range(0, self.num_vertices):
 
-		for i in range(0, self.num_vertices):
+			cut_vertex = np.asarray(self.vertices[id])
+			adjacent_vertices = [np.asarray(self.vertices[edge_id]) for edge_id in self.edges[id]]
+			edge_vecs = [cut_vertex - av for av in adjacent_vertices]
+			cut_normal = sum(edge_vecs)
+			projections = [abs(np.dot(ev, cut_normal)) / np.linalg.norm(cut_normal) for ev in edge_vecs]
+			cut_distance = proportion * min(projections)
+			cut_point = cut_vertex - cut_distance * cut_normal / np.linalg.norm(cut_normal)
 
-			vertex = self.vertices[i]
-			num_adjacent = len(self.edges[i])
-
-			adjacent_vertex_ids = [id for id in self.edges[i]]
-			adjacent_vertices = [self.vertices[id] for id in adjacent_vertex_ids]
-			normal = average_direction([np.asarray(vertex) - np.asarray(p) for p in adjacent_vertices])
-			adjacent_vertex_ids_ordered = counterclockwise_order(normal, [v - vertex for v in self.vertices], vec_ids=adjacent_vertex_ids)
-			adjacent_vertices_ordered = [self.vertices[id] for id in adjacent_vertex_ids_ordered]
-			cut_vertices_ordered = cut_tip(vertex, adjacent_vertices_ordered, proportion)
-			print(len(cut_vertices_ordered))
-			s.add_face(cut_vertices_ordered)
-			for j in range(0, num_adjacent):
-				middle_points[i][adjacent_vertex_ids_ordered[j]] = cut_vertices_ordered[j]
-
-		for f in self.faces:
-			pts = f.vertices
-			num_pts = f.num_sides
-			new_pts = []
-			for i in range(0, num_pts):
-				p1 = pts[i]
-				p2 = pts[(i + 1) % num_pts]
-				new_pts.append(middle_points[p1][p2])
-				new_pts.append(middle_points[p2][p1])
-			s.add_face(new_pts)
+			s.overwrite(s.plane_slice(cut_point, cut_normal))
 
 		return s
 
@@ -151,7 +196,8 @@ class Solid:
 	def build(self):
 
 		self.triangles = []
-		for f in self.faces: self.build_face(f)
+		for f in self.faces: 
+			self.build_face(f)
 
 	## danger! this will overwrite files
 	def gen_file(self):

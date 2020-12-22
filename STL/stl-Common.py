@@ -159,6 +159,32 @@ def cut_tip(tip_point, other_points, proportion):
 
 	return face_vertices
 
+## given a point and normal vector defining a plane and a second point, 
+## checks whether the second point is on the side of the plane indicated by the vector
+def side_of_plane(check_point, plane_point, plane_normal):
+
+	ppv = np.asarray(plane_point)
+	nv = np.asarray(plane_normal)
+	cpv = np.asarray(check_point)
+
+	return np.dot(nv, cpv - ppv) > 0
+
+def segment_intersect_plane(point1, point2, plane_point, plane_normal):
+
+	if side_of_plane(point1, plane_point, plane_normal) == side_of_plane(point2, plane_point, plane_normal):
+		return False
+
+	pv1 = np.asarray(point1)
+	pv2 = np.asarray(point2)
+	ppv = np.asarray(plane_point)
+	nv = np.asarray(plane_normal)
+	dv = pv2 - pv1
+
+	coef1 = abs(np.dot(pv1 - ppv, nv) / np.linalg.norm(nv))
+	coef2 = abs(np.dot(pv2 - ppv, nv) / np.linalg.norm(nv))
+
+	return (coef2 * pv1 + coef1 * pv2) / (coef1 + coef2)
+
 class Prism(Solid):
 
 	def __init__(self, name, base_pts, height, topped=True):

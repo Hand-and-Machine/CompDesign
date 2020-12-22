@@ -38,7 +38,7 @@ class UniformSolid(Solid):
 		## centered at the center of its base
 		if id == 3:
 
-			base_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, -1), 4, adjust_sidelength=sidelength)
+			base_pts = reg_polygon_pts((0, 0, 0), (1, 0, 0), (0, 0, 1), 4, adjust_sidelength=sidelength)
 			cb = Prism("temp", base_pts, sidelength)
 
 			self.join_solid(cb)
