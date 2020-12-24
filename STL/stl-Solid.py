@@ -105,6 +105,10 @@ class Solid:
 
 		for v in self.vertices: v += np.asarray(trans)
 
+	def origin_dilate(self, factor):
+
+		for v in self.vertices: v = v * factor
+
 	def join_solid(self, solid):
 
 		for f in solid.faces:
@@ -208,6 +212,8 @@ class Solid:
 		for f in self.faces: 
 			self.build_face(f)
 
+		return self
+
 	## danger! this will overwrite files
 	def gen_file(self):
 
@@ -223,3 +229,5 @@ class Solid:
 		for l in filetext: 
 			f.write(l+"\n")
 		f.close()
+
+		return self
