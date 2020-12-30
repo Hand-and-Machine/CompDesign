@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Dynamic Circle!</title>
+	<script type="text/javascript">
+
+		class DynamicPart {
+
+			constructor(id) {
+
+				this.id = id;
+				this.element = document.getElementById(id);
+				console.log(this.id);
+				this.dynamic_values = {};
+				this.value_calculators = {};				
+
+			}
+
+			addValue(name, calc) {
+
+				this.dynamic_values[name] = 0;
+				this.value_calculators[name] = calc;
+
+			}
+
+			updateMe(data) {
+
+				// possible smell: changing a dictionary as it is being looped over?
+				for (var v in this.dynamic_values) {
+					let value = this.value_calculators[v](data);
+					this.dynamic_values[v] = value;
+					this.element.setAttribute(v, value);
+				}
+
+			}
+
+		}
+
+		class DynamicDisplay {
+
+			constructor(id) {
+
+				this.element = document.getElementById(id);
+				this.dynamic_parts = [];
+				this.inputs = [];
+
+			}
+
+			updateMe() {
+
+				let data = [];
+
+				for (var i in this.inputs) {
+
+					data.push(parseFloat(this.inputs[i].value));
+
+				}
+
+				console.log(data)
+
+				let num_parts = this.dynamic_parts.length;	
+				for (let i = 0; i < num_parts; i++) {
+
+					this.dynamic_parts[i].updateMe(data);
+
+				}
+
+			}
+
+			addPart(part) {	
+
+				this.dynamic_parts.push(part);
+
+			}
+
+			addInput(id) {
+
+				let element = document.getElementById(id);
+				this.inputs.push(element);
+
+				let _this = this;
+				element.oninput = function() {
+					console.log("AAAAAAAHHHH something is happeming");
+					_this.updateMe();
+				}
+
+			}
+
+		}
+
+		class Graph extends DynamicDisplay {
+
+			constructor(id, coord_system, x_window, y_window, interval=1) {
+
+				super(id);
+				this.coord_system = coord_system;
+				this.x_min = x_window[0];
+				this.x_max = x_window[1];
+				this.x_range = this.x_max - this.x_min;
+				this.y_min = y_window[0];
+				this.y_max = y_window[1];
+				this.y_range = this.y_max - this.y_min;
+				this.interval = interval;
+				this.width = parseFloat(this.element.width.baseVal.value);
+				this.height = parseFloat(this.element.height.baseVal.value);
+
+			}
+
+			pointToPixels(x, y) {
+				
+				let pixel_x = (x - this.x_min) * this.width / this.x_range;
+				let pixel_y = (this.y_max - y) * this.height / this.y_range;
+
+				console.log([pixel_x, pixel_y])
+				return([pixel_x, pixel_y]);
+
+			}
+
+			drawLine(x1, y1, x2, y2, stroke="gray") {
+
+				let line = document.createElement("line");
+				let pixel_p1 = this.pointToPixels(x1, y1);
+				let pixel_p2 = this.pointToPixels(x2, y2);
+				let pixel_x1 = pixel_p1[0];
+				let pixel_y1 = pixel_p1[1];
+				let pixel_x2 = pixel_p2[0];
+				let pixel_y2 = pixel_p2[1];
+				
+				line.setAttribute("x1", pixel_x1);
+				line.setAttribute("y1", pixel_y1);
+				line.setAttribute("x2", pixel_x2);
+				line.setAttribute("y2", pixel_y2);
+				line.setAttribute("stroke", stroke);
+
+				this.element.appendChild(line);
+
+			}
+
+			drawAxes() {
+
+				min_line_x = this.interval * Math.ceil(this.min_x / this.interval);
+
+				for (let x = min_line_x; x <= this.max_x; x += this.interval ) {
+
+					let line = document.createElement("line");
+					
+					line.setAttribute("x1", this.pointToPixels(x, 0)[0].toString());
+					line.setAttribute("x2", this.pointTo.toString());
+					line.setAttribute("y1", "0".toString());
+					line.setAttribute("y2", this.y_max.toString());
+					
+					this.element.appendChild(line);
+
+				}
+
+			}
+
+		}
+
+		window.onload = function() {
+
+			d = new DynamicDisplay("test-svg");
+			d.addInput("grabme1");
+			d.addInput("grabme2");
+			circle = new DynamicPart("mycircle");
+			circle.addValue("r", function(data){return((data[0] + data[1])/2);});
+			d.addPart(circle);
+
+		}
+
+	</script>
+</head>
+	
+<body>
+	<svg id="test-graph" width="500" height="500" version="1.1" xmlns="http://www.w3.org/2000/svg">
+		<line id="test-line" x1="0" y1="0" x2="100" y2="100" stroke="red" />
+	</svg>
+	<input type="range" id="grabme1">
+	<input type="range" id="grabme2">
+	<svg id="test-svg" width="500" height="500" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	  <circle id="mycircle" cx="200" cy="200" r="50" stroke="red" fill="transparent" stroke-width="5"/>
+	</svg>
+	
+</body>
+</html>
