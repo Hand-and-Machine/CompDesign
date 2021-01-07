@@ -36,7 +36,6 @@ print("hello world!")
 Since we're interested in creating copies of objects that are rotated about the z-axis, we can use cylindrical coordinates to make this job easier. Recall that cylindrical coordinates identifies points by their distance `r` from the z-axis, the angle `theta` that they make with the xz-plane, and their height `z`. A point in 3-space is uniquely identified by the triple `(r, theta, z)` in cylindrical coordinates, whereas the triple `(x, y, z)` is used in the more common rectangular coordinates.
 
 ![Fig5](/tutorials/img/cylindrical-tutorial-fig5.png)
-[CREATE A PICTURE SHOWING HOW THE COORDINATE SYSTEMS WORK]
 
 Let's write a class in Python that will help us store and transform points in the cylindrical coordinate system.
 
