@@ -112,32 +112,126 @@ Now let's make multiple layers that are rotated and stacked on top of each other
 layers = []
 
 for i in range(0, 5):
-    next_layer = [p.clone() for p in base]
+    next_layer = [p.clone().to_rhinopoint() for p in base]
     layers.append(next_layer)
     for p in base:
         p.theta += math.pi/16
         p.z += 5
 ```
 
-This `for` loop repeatedly adds copies of the points in `base` to the list `layers`, and then rotates each point by an angle of `math.pi/20` and translates them `5` units up the z-axis. Note that this is exactly the same as what we did with the spheres: recall that each stack of spheres swept out an angle of 45 degrees or PI/4, meaning that each sphere must have been rotated exactly PI/16 degrees (because 4 rotated duplicates were created for each sphere, and 4 * PI/16 = PI/4). Before running, don't forget about the last line of your code:
+This `for` loop repeatedly adds copies of the points in `base` to the list `layers` (converting them to Rhino points in the process), and then rotates each point by an angle of `math.pi/20` and translates them `5` units up the z-axis. Note that this is exactly the same as what we did with the spheres: recall that each stack of spheres swept out an angle of 45 degrees or PI/4, meaning that each sphere must have been rotated exactly PI/16 degrees (because 4 rotated duplicates were created for each sphere, and 4 * PI/16 = PI/4). Before running, don't forget about the last line of your code:
 
 ```
-a = [p.to_rhinopoint() for p in base]
+a = base
 ``` 
 
-This only considers the points in the array `base`, but we care about all of the points stored in `layers`. Recall that `layers` is a list of lists, with each list corresponding to one of the stacked layers. We can generate a list of Rhino points from `layers` by replacing the above line with the following:
+This only considers the points in the array `base`, but we care about all of the points stored in `layers`. Recall that `layers` is a list of lists, with each list corresponding to one of the stacked layers. We can generate a list of points from the list of lists `layers` by replacing the above line with the following:
 
 ```
-a = [p.to_rhinopoint() for layer in layers for p in layer]
+a = [p for layer in layers for p in layer]
 ```
 
+Let's make this modular as well, by parametrizing the number of layers rather than hard-coding it as `5`. Add another Number Slider component called `num_levels` (setting its data type to `int` and appropriate min/max values) and connect it to the Python component as shown below:
 
+![Fig9](/tutorials/img/cylindrical-tutorial-fig9.png)
+
+Now change your `for` loop to the following:
+
+```
+for i in range(0, num_levels):
+    next_layer = [p.clone().to_rhinopoint() for p in base]
+    layers.append(next_layer)
+    for p in base:
+        p.theta += math.pi/(4*(num_levels-1))
+        p.z += 5
+```
+
+Now you can easily change the number of levels by adjusting your slider. Here's what you should get when you set both `num_levels` and `num_pts` equal to `5`:
+
+![Fig10](/tutorials/img/cylindrical-tutorial-fig10.png)
+
+We can make this even more modular by parametrizing values like the total angle swept through (currently equal to PI/4) and the z-offset (currently equal to 5). I'll leave that as an exercise for you.
+
+### Part 5
+
+Now that we're able to generate these interesting point patterns, let's join the points together with lines to create a single connected object. Add another output to the Python component, and then create a Line component and connect it to this output, as shown below:
+
+![Fig11](/tutorials/img/cylindrical-tutorial-fig11.png)
+
+Then add the following lines to the end of your Python code:
+
+```
+ln = []
+
+for layer in layers:
+    for i in range(0, num_pts):
+        p1 = layer[i-1]
+        p2 = layer[i]
+        l = rs.AddLine(p1, p2)
+        ln.append(l)
+        
+b = ln
+```
+
+When you run the code, you should get something that looks like this:
+
+![Fig12](/tutorials/img/cylindrical-tutorial-fig12.png)
+
+Now let's connect the layers together to form a single contiguous wireframe object. Add the following `for` loop between the previous `for` loop and the line `b = ln`:
+
+```
+for n in range(0, num_levels-1):
+    for i in range(0, num_pts):
+        p1 = layers[n][i]
+        p2 = layers[n+1][i]
+        l = rs.AddLine(p1, p2)
+        ln.append(l)
+```
+
+This code loops through all of the layers (except for the topmost one) and connects each point of each layer to the corresponding point of the layer above it. (The topmost layer is skipped because there is no layer above it to connect it to.) Now our construction looks like this:
+
+![Fig13](/tutorials/img/cylindrical-tutorial-fig13.png)
+
+Finally, let's give our construction some thickness. In the Grasshopper GUI, select `Surface` -> `Pipe` and create a new Pipe component. Connect your preexisting `Line` component to the `C` input of the Pipe component, and create a new Slider component labelled `pipe_radius` to the `R` input, so that your setup looks like this:
+
+![Fig14](/tutorials/img/cylindrical-tutorial-fig14.png)
+
+Now our construction is actually a solid rather than just a wireframe:
+
+![Fig15](/tutorials/img/cylindrical-tutorial-fig15.png)
+
+By adjusting the value of the `pipe_radius` slider, you can make these pipes fatter or thinner as you please.
+
+### Part 6
+
+So far, our construction isn't really much more complex than what we created using the `Polar array` transformation tool. But now that we've replicated its functionality in our own code, we can tweak it to do more interesting things. For example, there's no reason why the radius of each layer has to be the same - perhaps we want this structure to get fatter or skinnier from bottom to top. Let's take another look at the `for` loop we used to generate our points:
+
+```
+for i in range(0, num_levels):
+    next_layer = [p.clone().to_rhinopoint() for p in base]
+    layers.append(next_layer)
+    for p in base:
+        p.theta += math.pi/(4*(num_levels-1))
+        p.z += 5
+```
+
+Now add a line after `p.z += 5` that says `p.r = 2*i + 3`. Can you visualize how this will change the shape of our construction? Try to guess what it will look like, then run the code to see how it looks. You can also tweak the line `p.z += 5`. Try changing it to `p.z += (1 - i/num_levels) * 8`. Can you picture how this will change the shape of your solid? How tall will your solid be, in terms of `num_levels`?
+
+Here's an example of an interesting vase-like solid that we can create using the lines `p.z += 3 + 5*i/num_levels` and `p.r = 7 + 3 * math.sin(2*math.pi*i/num_levels)`:
+
+![Fig16](/tutorials/img/cylindrical-tutorial-fig16.png)
+
+See if you can make more interesting solids by parametrizing this program with new variables controlled by sliders.
 
 ### Troubleshooting
+
+If you've had trouble getting your program to work, you can look at my finished version of the Grasshopper code, found in the file `cylindrical-tutorial.gh`.
 
 #### Part 3
 
 `Runtime error (TypeErrorException): range() integer end argument expected, got float`
 If you get the above error after incorporating the `num_pts` input into your `for` loop, right-click on the `num_pts` input of the Python component and select `Type hint` -> `int`. This will let the Python component know to interpret that input as an integer, so that it is compatible with the `range()` function.
+
+
 
 
