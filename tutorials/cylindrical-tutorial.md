@@ -15,3 +15,16 @@ Let's apply the `Polar array` transformation again. This time, select all 5 sphe
 (Note: the above image was created using `Display` -> `Rendered viewport`, since it doesn't look good when displayed using `Wireframe`.) We get a bunch of stacked spheres, where each level is `5` units higher than the previous, and each pile sweeps through an angle of `45` degrees. If you want, play around with the `Polar array` transformation some more, trying out different values for each of the parameters.
 
 One limitation of the `Polar array` transformation is that it can only rotate and elevate each copy of an object by a constant amount. What if we want to make a twisting stacked structure where the gap between levels increases from one level to the next? The `Polar array` functionality isn't flexible enough to do this, but we can accomplish something similar by writing our own functions in Grasshopper.
+
+Open Grasshopper (`Tools` -> `Grasshopper`) and connect a GhPython script component, a Panel component, and a Point component as shown below:
+
+![Fig4](/tutorials/img/cylindrical-tutorial-fig4.png)
+
+The panel will be used to debug our python script by printing messages to the console, and we'll use the script to generate a set of points in Rhino by sending them to the point component. Open up the python script editor and start by pasting the following simple script:
+
+```
+import rhinoscriptsyntax as rs
+import math
+
+print("hello world!")
+```
