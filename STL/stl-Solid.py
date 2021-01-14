@@ -41,6 +41,22 @@ class Face:
 		self.num_sides = len(vertex_ids)
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
+	def center(self, vertices):
+
+		center = sum([np.asarray(vertices[id]) for id in self.vertices]) / self.num_sides
+		return center
+
+	def normal(self, vertices):
+
+		p0 = np.asarray(vertices[self.vertices[0]])
+		p1 = np.asarray(vertices[self.vertices[1]])
+		p2 = np.asarray(vertices[self.vertices[2]])
+		v0 = p0 - p1
+		v1 = p1 - p2
+		normal = np.cross(v0, v1) / (np.linalg.norm(v0) * np.linalg.norm(v1))
+
+		return normal
+
 class Solid:
 
 	def __init__(self, name, error=1.0E-7):
@@ -176,7 +192,47 @@ class Solid:
 
 		return s
 
-	def truncate(self, proportion):
+	def conway_dual(self):
+
+		s = Solid(self.name)
+
+		for id in range(0, self.num_vertices):
+
+			vertex = np.asarray(self.vertices[id])
+			adj_faces = [f for f in self.faces if id in f.vertices]
+			adj_centers = [np.asarray(f.center(self.vertices)) for f in adj_faces]
+			offset_vecs = [c - vertex for c in adj_centers]
+			outward_vec = -sum(offset_vecs)
+			ordered_offset_vecs = counterclockwise_order(outward_vec, offset_vecs)
+			ordered_centers = [vertex + v for v in ordered_offset_vecs]
+
+			s.add_face(ordered_centers)
+
+		return s
+
+
+	def conway_kis(self, distance):
+
+		s = Solid(self.name)
+		pts = self.vertices
+
+		for f in self.faces:
+
+			center = f.center(pts)
+			normal = f.normal(pts)
+			peak = center + distance * normal
+
+			for i in range(0, f.num_sides):
+
+				p0 = pts[f.vertices[i]]
+				p1 = pts[f.vertices[(i + 1) % f.num_sides]]
+				triangle_pts = [peak, p0, p1]
+
+				s.add_face(triangle_pts)
+
+		return s
+
+	def conway_truncate(self, proportion):
 
 		s = Solid(self.name)
 		s.join_solid(self)
@@ -199,11 +255,12 @@ class Solid:
 	def build_face(self, face):
 
 		pts = [ self.vertices[id] for id in face.vertices ]
-		num_pts = len(pts)
+		num_pts = face.num_sides
+		center = sum([np.asarray(p) for p in pts]) / num_pts
 
 		# generate triangles for STL file
-		for i in range(0, num_pts-2):
-			t = Triangle(pts[0], pts[i+1], pts[i+2])
+		for i in range(0, num_pts):
+			t = Triangle(center, pts[i], pts[(i+1) % num_pts])
 			self.triangles.append(t)
 
 	def build(self):
