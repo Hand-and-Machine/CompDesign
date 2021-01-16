@@ -63,7 +63,8 @@ The `Solid` class also has a few built-in higher-level functions for manipulatin
 - `Solid.join_solid(solid)` unions the `Solid` with another given solid `solid`, even if they intersect/overlap with each other.
 - `Solid.overwrite(solid)` completely overwrites the `Solid` with a copy of the given solid `solid`.
 - `Solid.plane_slice(plane_point, plane_normal)` returns the solid formed by slicing the `Solid` with a plane defined by the point `plane_point` and the normal vector `plane_normal`. The portion of the `Solid` on the side of the plane pointed to by `plane_normal` is removed, and the other side remains. NOTE: this method does *not* overwrite the original `Solid`, but rather returns a new `Solid` created by performing this operation.
-- `Solid.truncate(proportion)` returns the solid formed by cutting off (truncating) all of the vertices of the `Solid` (the depth of the cut is determined by the argument `proportion`, where a value of, say, `0.5` cuts half of the depth of the maximum cut which would not collide with any other vertices).
+- `Solid.conway_kis(distance)` returns the solid formed by turning each face into a pyramid, which is accomplished  by locating the center of each face and pushing it outward (or inward, for negative values of `distance`) in the direction normal to the face. Corresponds to the Conway "kis" operator.
+- `Solid.conway_truncate(proportion)` returns the solid formed by cutting off (truncating) all of the vertices of the `Solid` (the depth of the cut is determined by the argument `proportion`, where a value of, say, `0.5` cuts half of the depth of the maximum cut which would not collide with any other vertices). Corresponds to the Conway "truncate" operator.
 
 There are a lot more methods I'd like to write to manipulate `Solid` objects with. Here's a tentative to-do list:
 
