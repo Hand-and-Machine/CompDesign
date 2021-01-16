@@ -117,6 +117,35 @@ class Solid:
 		for i in range(0, num_pts):
 			self.add_edge(vertex_ids[i], vertex_ids[(i + 1) % num_pts])
 
+	def add_face_unordered(self, pts, interior_pt):
+
+		num_pts = len(pts)
+
+		pvs = [np.asarray(p) for p in pts]
+		ipv = np.asarray(interior_pt)
+		cv = sum(pvs) / num_pts
+		nv = cv - ipv
+		offset_vecs = [pv - ipv for pv in pvs]
+		ordered_offset_vecs = counterclockwise_order(nv, offset_vecs)
+		ordered_pvs = [ipv + ov for ov in ordered_offset_vecs]
+
+		self.add_face(ordered_pvs)
+
+	def center(self):
+
+		center = sum([np.asarray(v) for v in self.vertices]) / self.num_vertices
+		return center
+
+	def faces_with_edge(self, id1, id2):
+
+		faces_list = []
+
+		for f in self.faces:
+			if id1 in f.vertices and id2 in f.vertices:
+				faces_list.append(f)
+		
+		return faces_list
+
 	def translate(self, trans):
 
 		for v in self.vertices: v += np.asarray(trans)
@@ -251,6 +280,44 @@ class Solid:
 			s.overwrite(s.plane_slice(cut_point, cut_normal))
 
 		return s
+
+	def conway_expand(self, distance):
+
+		s = Solid(self.name)
+
+		center = self.center()
+		pushed_vertices = { f: { id: np.asarray((0, 0, 0)) for id in f.vertices } for f in self.faces }
+
+		for f in self.faces:
+
+			face_center = f.center(self.vertices)
+			trans_vec = face_center - center
+			trans_vec = trans_vec * distance / np.linalg.norm(trans_vec)
+			trans_verts = []
+
+			for id in f.vertices:
+				trans_vert = np.asarray(self.vertices[id]) + trans_vec
+				trans_verts.append(trans_vert)
+				pushed_vertices[f][id] = trans_vert
+
+			s.add_face(trans_verts)
+
+		for id in range(0, self.num_vertices):
+
+			pushed_copies = [ pushed_vertices[f][id] for f in pushed_vertices if id in pushed_vertices[f]]
+			s.add_face_unordered(pushed_copies, center)
+
+		for id1 in range(0, len(self.edges)):
+			for id2 in self.edges[id1]:
+				if id1 < id2:
+
+					f1, f2 = self.faces_with_edge(id1, id2)
+					e1 = [pushed_vertices[f1][id1], pushed_vertices[f1][id2]]
+					e2 = [pushed_vertices[f2][id1], pushed_vertices[f2][id2]]
+					s.add_face_unordered(e1 + e2, center)
+
+		return s
+
 
 	def build_face(self, face):
 

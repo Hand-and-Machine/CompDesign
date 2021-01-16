@@ -1,0 +1,3 @@
+- add more redundancy to make more efficient
+	- create a directory for looking up (a) which faces contain a given vertex, and (b) which faces contain a given edge
+- fix truncation for concave solids
