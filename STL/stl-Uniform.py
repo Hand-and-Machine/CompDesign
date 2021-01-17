@@ -117,7 +117,7 @@ class ArchimedeanSolid(Solid):
 		if id == 1:
 
 			t = PlatonicSolid(self.name, 1, sidelength)
-			tt = t.truncate(1/3)
+			tt = t.conway_truncate(1/3)
 
 			self.overwrite(tt)
 			self.origin_dilate(3)
@@ -125,7 +125,7 @@ class ArchimedeanSolid(Solid):
 		elif id == 2:
 
 			c = PlatonicSolid(self.name, 2, sidelength)
-			co = c.truncate(1/2)
+			co = c.conway_truncate(1/2)
 
 			self.overwrite(co)
 			self.origin_dilate(2**(1/2))
@@ -133,7 +133,7 @@ class ArchimedeanSolid(Solid):
 		elif id == 3:
 
 			c = PlatonicSolid(self.name, 3, sidelength)
-			tc = c.truncate(1/3)
+			tc = c.conway_truncate(1/3)
 
 			self.overwrite(tc)
 			self.origin_dilate(3)
@@ -141,7 +141,7 @@ class ArchimedeanSolid(Solid):
 		elif id == 4:
 
 			o = PlatonicSolid(self.name, 2, sidelength)
-			to = o.truncate(1/3)
+			to = o.conway_truncate(1/3)
 
 			self.overwrite(to)
 			self.origin_dilate(3)
@@ -151,8 +151,8 @@ class ArchimedeanSolid(Solid):
 		elif id == 6:
 
 			c = PlatonicSolid(self.name, 2, sidelength * 3 * 2**(1/2))
-			co = c.truncate(1/2)
-			tco = co.truncate(1/3)
+			co = c.conway_truncate(1/2)
+			tco = co.conway_truncate(1/3)
 
 			self.overwrite(tco)
 			self.origin_dilate(3 * 2**(1/2))
@@ -162,7 +162,7 @@ class ArchimedeanSolid(Solid):
 		elif id == 9:
 
 			dd = PlatonicSolid(self.name, 4, sidelength)
-			tdd = dd.truncate(0.333)
+			tdd = dd.conway_truncate(0.333)
 
 			self.overwrite(tdd)
 			self.origin_dilate(3)
@@ -170,7 +170,7 @@ class ArchimedeanSolid(Solid):
 		elif id == 10:
 
 			i = PlatonicSolid(self.name, 5, sidelength)
-			ti = i.truncate(1/3)
+			ti = i.conway_truncate(1/3)
 
 			self.overwrite(ti)
 			self.origin_dilate(3)

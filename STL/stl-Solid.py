@@ -68,6 +68,7 @@ class Solid:
 		self.num_vertices = 0
 		self.edges = []
 		self.faces = []
+		self.faces_by_vertex = []
 
 	## adds a vertex to the solid if it does not already exist... within a margin of error
 	## and returns its index in the self.vertices array (these are the IDs of these vertices)
@@ -86,6 +87,7 @@ class Solid:
 			self.vertices.append(np.asarray(v))
 			self.num_vertices += 1
 			self.edges.append(set())
+			self.faces_by_vertex.append([])
 			return self.num_vertices - 1
 
 	## adds an edge to the solid
@@ -116,6 +118,7 @@ class Solid:
 
 		for i in range(0, num_pts):
 			self.add_edge(vertex_ids[i], vertex_ids[(i + 1) % num_pts])
+			self.faces_by_vertex[vertex_ids[i]].append(face)
 
 	def add_face_unordered(self, pts, interior_pt):
 
@@ -170,6 +173,7 @@ class Solid:
 
 		self.join_solid(solid)
 
+	## currently only supported for convex solids
 	def plane_slice(self, plane_point, plane_normal):
 
 		s = Solid(self.name, error=self.error)
@@ -227,15 +231,11 @@ class Solid:
 
 		for id in range(0, self.num_vertices):
 
-			vertex = np.asarray(self.vertices[id])
-			adj_faces = [f for f in self.faces if id in f.vertices]
+			adj_faces = self.faces_by_vertex[id]
 			adj_centers = [np.asarray(f.center(self.vertices)) for f in adj_faces]
-			offset_vecs = [c - vertex for c in adj_centers]
-			outward_vec = -sum(offset_vecs)
-			ordered_offset_vecs = counterclockwise_order(outward_vec, offset_vecs)
-			ordered_centers = [vertex + v for v in ordered_offset_vecs]
+			solid_center = self.center()
 
-			s.add_face(ordered_centers)
+			s.add_face_unordered(adj_centers, solid_center)
 
 		return s
 
@@ -261,6 +261,7 @@ class Solid:
 
 		return s
 
+	## currently only supported for convex solids
 	def conway_truncate(self, proportion):
 
 		s = Solid(self.name)
