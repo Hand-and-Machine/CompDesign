@@ -1,4 +1,4 @@
-### Part 1
+### Part 1: Polar Arrays
 
 Let's start by checking out Rhino's `Polar array` transformation. First, create a solid sphere, centered at, say `(10, 0, 0)` and with a radius of `3`.
 
@@ -16,7 +16,7 @@ Let's apply the `Polar array` transformation again. This time, select all 5 sphe
 
 (Note: the above image was created using `Display` -> `Rendered viewport`, since it doesn't look good when displayed using `Wireframe`.) We get a bunch of stacked spheres, where each level is `5` units higher than the previous, and each pile sweeps through an angle of `45` degrees. If you want, play around with the `Polar array` transformation some more, trying out different values for each of the parameters.
 
-## Part 2
+## Part 2: Points in Polar Coordinates
 
 One limitation of the `Polar array` transformation is that it can only rotate and elevate each copy of an object by a constant amount. What if we want to make a twisting stacked structure where the gap between levels increases from one level to the next? The `Polar array` functionality isn't flexible enough to do this, but we can accomplish something similar by writing our own functions in Grasshopper.
 
@@ -68,7 +68,7 @@ The `__init__` method generates values of `r`, `theta`, and `z` for a point in 3
 
 Now suppose we have some instance `p` of a `CylindricalPoint` object. We can easily transform `p` in a number of useful ways by directly altering its `r`, `theta`, and `z` attributes. For example, executing `p.r = p.r * 3` would increase the radius by a factor of 3, effectively dilating it about the z-axis.Executing `p.theta += math.pi/4` would rotate the point counterclockwise about the z-axis by an angle of PI/4, or 45 degrees. Executing `p.z += 1` would lift the point 1 unit higher.
 
-### Part 3
+### Part 3: Spacing Points around a Circle
 
 Let's use this new class to recreate the arrangement of spheres we made earlier (this time just using points instead of spheres). First let's generate the 5 base points, using the following code:
 
@@ -103,7 +103,7 @@ Now you should be able to change the number of points by adjusting the slider. F
 
 ![Fig8](/tutorials/img/cylindrical-tutorial-fig8.png)
 
-### Part 4
+### Part 4: Stacking Layers of Points
 
 Now let's make multiple layers that are rotated and stacked on top of each other, as we did earlier with the spheres. We'll store each layer of points in its own array for easy access later on. Add the following lines to your code immediately after the other `for` loop:
 
@@ -151,7 +151,7 @@ Now you can easily change the number of levels by adjusting your slider. Here's 
 
 We can make this even more modular by parametrizing values like the total angle swept through (currently equal to PI/4) and the z-offset (currently equal to 5). I'll leave that as an exercise for you.
 
-### Part 5
+### Part 5: Connecting Points into a Solid
 
 Now that we're able to generate these interesting point patterns, let's join the points together with lines to create a single connected object. Add another output to the Python component, and then create a Line component and connect it to this output, as shown below:
 
@@ -201,7 +201,7 @@ Now our construction is actually a solid rather than just a wireframe:
 
 By adjusting the value of the `pipe_radius` slider, you can make these pipes fatter or thinner as you please.
 
-### Part 6
+### Part 6: Getting Creative
 
 So far, our construction isn't really much more complex than what we created using the `Polar array` transformation tool. But now that we've replicated its functionality in our own code, we can tweak it to do more interesting things. For example, there's no reason why the radius of each layer has to be the same - perhaps we want this structure to get fatter or skinnier from bottom to top. Let's take another look at the `for` loop we used to generate our points:
 
