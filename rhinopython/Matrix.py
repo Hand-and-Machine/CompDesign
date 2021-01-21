@@ -62,9 +62,21 @@ class Matrix:
 
 		for row in self.entries: print(row)
 
+	def transpose(self):
+
+		entries = [[self.entries[i][j] for i in range(self.rows)] for j in range(self.cols)]
+		return Matrix(entries)
+
+	def vectorize(self):
+
+		if self.cols != 1:
+			raise Exception("Only Matrices with one column can be converted to column Vectors")
+		else:
+			return Vector([row[0] for row in self.entries])
+
 	def __add__(a, b):
 
-		if type(a) != Matrix or type(b) != Matrix:
+		if not (isinstance(a, Matrix) and isinstance(b, Matrix)):
 			raise Exception("Matrices can only be added to other matrices")
 		elif a.rows != b.rows or a.cols != b.cols:
 			raise Exception("Matrices with different dimensions cannot be added")
@@ -74,19 +86,23 @@ class Matrix:
 			ae = a.entries
 			be = b.entries
 			entries = [[ae[i][j] + be[i][j] for j in range(c)] for i in range(r)]
-			return Matrix(entries)
+			result = Matrix(entries)
+			if result.cols == 1: result = result.vectorize()
+			return result
 
 	def __mul__(a, b):
 
-		if type(a) != Matrix or type(b) != Matrix:
+		result = False
+
+		if not (isinstance(a, Matrix) and isinstance(b, Matrix)):
 	
 			if is_number(a):
 				entries = [[entry * a for entry in row] for row in b.entries]
-				return Matrix(entries)
+				result =  Matrix(entries)
 	
 			elif is_number(b):
 				entries = [[entry * b  for entry in row] for row in a.entries]
-				return Matrix(entries)
+				result =  Matrix(entries)
 	
 			else:
 				raise Exception("Only matrix-matrix and matrix-scalar multiplication are supported")
@@ -103,11 +119,18 @@ class Matrix:
 					b_col = b.col_at(j)
 					entry = sum([a_row[n] * b_col[n][0] for n in range(length)])
 					entries[i][j] = entry
-			return Matrix(entries)
+			result = Matrix(entries)
+
+		if result.cols == 1: result = result.vectorize()
+		return result
 
 	def __rmul__(a, b):
 		
 		return Matrix.__mul__(b, a)
+
+	def __sub__(a, b):
+
+		return a + (-1)*b
 
 	def column(entries):
 
@@ -140,10 +163,6 @@ class Matrix:
 		t_inv = Matrix.translation(center)
 		return t_inv * d * t
 
-	def rotation(theta, normal):
-
-		dim = len(normal)
-
 class Vector(Matrix):
 
 	def __init__(self, coords):
@@ -170,6 +189,42 @@ class Vector(Matrix):
 			val = self.at(i, 0)
 			self.set(i, 0, val/norm)
 		return self
+
+	def dot(a, b):
+
+		if not (isinstance(a, Vector) and isinstance(b, Vector)):
+			raise Exception("Dot product is only supported for Vectors")
+		elif a.cols != b.cols:
+			raise Exception("Only Vectors of the same length can be dotted")
+		else:
+			return (a.transpose() * b).at(0, 0)
+
+	def projection(a, b):
+
+		if not (isinstance(a, Vector) and isinstance(b, Vector)):
+			raise Exception("Vector projection is only supported for Vectors")
+		elif a.cols != b.cols:
+			raise Exception("A Vector can only be projected onto another Vector of the same length")
+		else:
+			a_unit = a.normalize()
+			a_norm = a.norm()
+			length = Vector.dot(a, b) / a_norm**2
+			return length * a_unit
+
+	## this function assumes that the set of vectors it is passed is already linearly independent
+	def gram_schmidt(vectors):
+
+		dim = vectors[0].cols
+		dim_subspace = len(vectors)
+
+		basis_vectors = []
+		for v in vectors:
+			new_bv = v
+			for w in basis_vectors:
+				new_bv = new_bv - Vector.projection(w, v)
+			basis_vectors.append(new_bv)
+
+		return [v.normalize() for v in basis_vectors]
 
 class Point(Matrix):
 
