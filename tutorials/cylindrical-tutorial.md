@@ -201,7 +201,32 @@ Now our construction is actually a solid rather than just a wireframe:
 
 By adjusting the value of the `pipe_radius` slider, you can make these pipes fatter or thinner as you please.
 
+Say you wanted to make a smooth surface rather than a curvy lattice of pipes. We can do this easily, and we don't even need our `CylindricalPoint` class. Just use the following code, instead of all of the for loops described earlier:
+
+```
+layers = []
+z = 0
+r = 7
+
+for i in range(0, num_levels):
+	z += 3 + 5*i/num_levels
+	r = 7 + 3*math.sin(2*math.pi*i/num_levels)
+	layers.append(rs.AddCircle((0, 0, z), r))
+
+a = layers
+```
+
+This just creates a bunch of vertically stacked horizontal circles with varying radii (how the z-values and radii of the circles vary changes the aesthetic of the solid, so you can try different formulae until you like the way the solid looks). Now connect the `a` output of your Python component to the `C` input of a `Loft` component (`Surface` -> `Freeform` -> `Loft`), like this:
+
+![Fig18](/tutorials/img/cylindrical-tutorial-fig18.png)
+
+Now you should have a smoother-looking contiguous solid:
+
+![Fig17](/tutorials/img/cylindrical-tutorial-fig17.png)
+
 ### Part 6: Getting Creative
+
+From this point, we'll continue using the curve lattice-vase generated earlier using the `Pipe` component, but you can do the same things with the smoother variant created using `Loft`.
 
 So far, our construction isn't really much more complex than what we created using the `Polar array` transformation tool. But now that we've replicated its functionality in our own code, we can tweak it to do more interesting things. For example, there's no reason why the radius of each layer has to be the same - perhaps we want this structure to get fatter or skinnier from bottom to top. Let's take another look at the `for` loop we used to generate our points:
 
