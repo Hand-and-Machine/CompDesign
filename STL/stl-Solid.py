@@ -1,6 +1,3 @@
-import os
-import numpy as np
-
 def stringify_vec(vec):
 	s = ""
 	for x in vec: s += str(x) + " "
@@ -39,6 +36,7 @@ class Face:
 
 		self.vertices = vertex_ids
 		self.num_sides = len(vertex_ids)
+		self.vertex_lookup = { vertex_ids[index]: index for index in range(self.num_sides) }
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
 	def center(self, vertices):
@@ -56,6 +54,26 @@ class Face:
 		normal = np.cross(v0, v1) / (np.linalg.norm(v0) * np.linalg.norm(v1))
 
 		return normal
+
+	def adjacent_verts(self, id):
+
+		index = self.vertex_lookup[id]
+		n = self.num_sides
+		adj_verts = [self.vertices[(index-1)%n], self.vertices[(index+1)%n]]
+
+		return adj_verts
+
+	def replace_vertex(self, id, vertices, replacements):
+
+		new_vertices = []
+
+		for i in self.vertices:
+			if i == id:
+				new_vertices += replacements
+			else:
+				new_vertices += [vertices[i]]
+
+		return new_vertices
 
 class Solid:
 
@@ -133,6 +151,15 @@ class Solid:
 		ordered_pvs = [ipv + ov for ov in ordered_offset_vecs]
 
 		self.add_face(ordered_pvs)
+
+	def copy(self):
+
+		s = Solid(self.name)
+
+		for f in self.faces:
+			s.add_face([self.vertices[id] for id in f.vertices])
+		
+		return s
 
 	def center(self):
 
@@ -261,24 +288,48 @@ class Solid:
 
 		return s
 
-	## currently only supported for convex solids
-	def conway_truncate(self, proportion):
+	def conway_truncate(self, distance):
+
+		s = self.copy()
+		vertices = self.vertices
+
+		for v in vertices:
+			s = s.truncate_vertex(s.add_vertex(v), distance)
+
+		return s
+
+	def truncate_vertex(self, id, distance):
 
 		s = Solid(self.name)
-		s.join_solid(self)
+		v = np.asarray(self.vertices[id])
 
-		for id in range(0, self.num_vertices):
+		edge_vecs = {id2: v - np.asarray(self.vertices[id2]) for id2 in self.edges[id]}
+		unit_edge_vecs = {id2: edge_vecs[id2] / np.linalg.norm(edge_vecs[id2]) for id2 in edge_vecs}
+		normal = sum([unit_edge_vecs[id2] for id2 in unit_edge_vecs])
+		normal = normal / np.linalg.norm(normal)
+		## max_cut_dist = max(0, min([np.dot(edge_vecs[id2], normal) for id2 in edge_vecs]))
+		## cut_dist = proportion * max_cut_dist
+		cut_normal = -normal
+		edge_cutoffs = [1/np.dot(unit_edge_vecs[id2], normal) for id2 in unit_edge_vecs]
+		max_edge_cutoff = max(edge_cutoffs)
+		cut_normal = cut_normal * distance / max_edge_cutoff
+		disp_vecs = {id2: unit_edge_vecs[id2] * np.linalg.norm(cut_normal)**2 / np.dot(unit_edge_vecs[id2], cut_normal) for id2 in unit_edge_vecs}
+		cut_pts = {id2: v + disp_vecs[id2] for id2 in disp_vecs}
+		face_normal = sum([f.normal(self.vertices) for f in self.faces if id in f.vertices])
+		sorted_disp_vecs = counterclockwise_order(face_normal, [disp_vecs[id2] for id2 in disp_vecs])
+		sorted_cut_pts = [v + dv for dv in sorted_disp_vecs]
+		s.add_face(sorted_cut_pts)
+		
+		for f in self.faces:
 
-			cut_vertex = np.asarray(self.vertices[id])
-			adjacent_vertices = [np.asarray(self.vertices[edge_id]) for edge_id in self.edges[id]]
-			edge_vecs = [cut_vertex - av for av in adjacent_vertices]
-			cut_normal = sum(edge_vecs)
-			## sometimes this results in very small values of the cut_distance variable, and I'm not sure why
-			projections = [abs(np.dot(ev, cut_normal)) / np.linalg.norm(cut_normal) for ev in edge_vecs]
-			cut_distance = proportion * min(projections)
-			cut_point = cut_vertex - cut_distance * cut_normal / np.linalg.norm(cut_normal)
-
-			s.overwrite(s.plane_slice(cut_point, cut_normal))
+			vertices = [self.vertices[i] for i in f.vertices]
+			if id in f.vertices:
+				adj_ids = f.adjacent_verts(id)
+				new_verts = [cut_pts[id2] for id2 in adj_ids]
+				new_face = f.replace_vertex(id, self.vertices, new_verts)
+				s.add_face(new_face)				
+			else:
+				s.add_face(vertices)
 
 		return s
 

@@ -1,3 +1,6 @@
+import os
+import numpy as np
+
 exec(open("stl-Tools.py").read())
 exec(open("stl-Solid.py").read())
 exec(open("stl-Common.py").read())
