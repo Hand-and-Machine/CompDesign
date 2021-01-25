@@ -55,13 +55,23 @@ class Face:
 
 		return normal
 
-	def adjacent_verts(self, id):
+	def next_vert(self, id):
 
 		index = self.vertex_lookup[id]
 		n = self.num_sides
-		adj_verts = [self.vertices[(index-1)%n], self.vertices[(index+1)%n]]
 
-		return adj_verts
+		return self.vertices[(index + 1) % n]
+
+	def prev_vert(self, id):
+
+		index = self.vertex_lookup[id]
+		n = self.num_sides
+
+		return self.vertices[(index - 1) % n]
+
+	def adjacent_verts(self, id):
+
+		return [self.prev_vert(id), self.next_vert(id)]
 
 	def replace_vertex(self, id, vertices, replacements):
 
@@ -87,6 +97,8 @@ class Solid:
 		self.edges = []
 		self.faces = []
 		self.faces_by_vertex = []
+		self.faces_by_edge = []
+		self.face_normals = {}
 
 	## adds a vertex to the solid if it does not already exist... within a margin of error
 	## and returns its index in the self.vertices array (these are the IDs of these vertices)
@@ -106,6 +118,7 @@ class Solid:
 			self.num_vertices += 1
 			self.edges.append(set())
 			self.faces_by_vertex.append([])
+			self.faces_by_edge.append({})
 			return self.num_vertices - 1
 
 	## adds an edge to the solid
@@ -137,6 +150,9 @@ class Solid:
 		for i in range(0, num_pts):
 			self.add_edge(vertex_ids[i], vertex_ids[(i + 1) % num_pts])
 			self.faces_by_vertex[vertex_ids[i]].append(face)
+			self.faces_by_edge[vertex_ids[i]][vertex_ids[(i + 1) % num_pts]] = face
+
+		self.face_normals[face] = face.normal(self.vertices)
 
 	def add_face_unordered(self, pts, interior_pt):
 
@@ -175,6 +191,27 @@ class Solid:
 				faces_list.append(f)
 		
 		return faces_list
+
+	## returns the edges in counterclockwise order, pointing towards the vertex in question
+	## might not work for "floating" faces or vertices
+	def adjacent_vertices_sorted(self, id):
+
+		adj_verts = []
+		num_verts = 0
+		degree = len(self.edges[id])
+
+		v_id = next(iter(self.edges[id]))
+		original_v_id = v_id
+
+		while num_verts < degree:
+			
+			adj_verts.append(v_id)
+			num_verts += 1
+
+			face = self.faces_by_edge[id][v_id]
+			v_id = face.prev_vert(id)
+
+		return adj_verts
 
 	def translate(self, trans):
 
@@ -275,7 +312,7 @@ class Solid:
 		for f in self.faces:
 
 			center = f.center(pts)
-			normal = f.normal(pts)
+			normal = self.face_normals[f]
 			peak = center + distance * normal
 
 			for i in range(0, f.num_sides):
@@ -303,22 +340,18 @@ class Solid:
 		s = Solid(self.name)
 		v = np.asarray(self.vertices[id])
 
-		edge_vecs = {id2: v - np.asarray(self.vertices[id2]) for id2 in self.edges[id]}
+		edge_vecs = {id2: v - np.asarray(self.vertices[id2]) for id2 in self.adjacent_vertices_sorted(id)}
 		unit_edge_vecs = {id2: edge_vecs[id2] / np.linalg.norm(edge_vecs[id2]) for id2 in edge_vecs}
 		normal = sum([unit_edge_vecs[id2] for id2 in unit_edge_vecs])
 		normal = normal / np.linalg.norm(normal)
-		## max_cut_dist = max(0, min([np.dot(edge_vecs[id2], normal) for id2 in edge_vecs]))
-		## cut_dist = proportion * max_cut_dist
 		cut_normal = -normal
 		edge_cutoffs = [1/np.dot(unit_edge_vecs[id2], normal) for id2 in unit_edge_vecs]
 		max_edge_cutoff = max(edge_cutoffs)
 		cut_normal = cut_normal * distance / max_edge_cutoff
 		disp_vecs = {id2: unit_edge_vecs[id2] * np.linalg.norm(cut_normal)**2 / np.dot(unit_edge_vecs[id2], cut_normal) for id2 in unit_edge_vecs}
 		cut_pts = {id2: v + disp_vecs[id2] for id2 in disp_vecs}
-		face_normal = sum([f.normal(self.vertices) for f in self.faces if id in f.vertices])
-		sorted_disp_vecs = counterclockwise_order(face_normal, [disp_vecs[id2] for id2 in disp_vecs])
-		sorted_cut_pts = [v + dv for dv in sorted_disp_vecs]
-		s.add_face(sorted_cut_pts)
+		face_normal = sum([self.face_normals[f] for f in self.faces if id in f.vertices])
+		s.add_face([cut_pts[id2] for id2 in cut_pts])
 		
 		for f in self.faces:
 
