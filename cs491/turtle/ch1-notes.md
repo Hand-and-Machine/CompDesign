@@ -5,4 +5,4 @@
 	- `REPEAT n`, implemented as a `for` loop
 - A potential stumbling block is that, when using the Turtle, we must measure polygons by their exterior angles, not their interior angles
 	- These are supplementary to the interior angles
-- <details> <summary> Here's a geometry puzzle: if a circle is created (approximately) by repeatedly running `FORWARD x, RIGHT theta`, for some small value of `theta`, what will the radius of the approximated circle be? </summary> The radius is `x/(2*sin(theta/2))`, which is approximately `x/theta` for small values of `theta`. </details> 
+- <details> <summary> Here's a geometry puzzle: if a circle is created (approximately) by repeatedly running <code><pre>FORWARD x, RIGHT theta</pre></code>, for some small value of <code><pre>theta</pre></code>, what will the radius of the approximated circle be? </summary> The radius is <code><pre>x/(2*sin(theta/2))</pre></code>, which is approximately <code><pre>x/theta</pre></code> for small values of <code><pre>theta</pre></code>. </details> 
