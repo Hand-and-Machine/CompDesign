@@ -1,0 +1,7 @@
+- It might be useful to be able to pick and choose which parts of the Turtle's state you want to push and pop. For instance, rather than pushing its position, heading, and pen status, you might, say, want to push only its position, so that when it is popped later, it will return to its old position but retain its heading and pen status.
+- Page 22 of the Turtle Geometry book seems to be blank, and exercises 8-13 are either partially or wholly missing.
+- An idea: what if, instead of assigning the same book exercises to each student, we gave each student some degree of choice regarding which exercises from each chapter/section to complete?
+	- This could be arranged so that no matter which problems a student chooses, they will have to use each "important" math concept for at least one of the problems.
+- Turtle is a great way to describe 2D curves in an "embodied" or "dynamic" way... can we do the same for 3D solids? It's unclear how that would work.
+- We can make some pretty cool fractal-ly curves by making repeated substitutions in the Turtle's instructions. For example, given some instructions, replace each instance of `forward` with a more complicated function that has the same displacement, and repeat this process to get a curve.
+    - We can also get some cool symmetrical/fractal shapes by translating certain mathematical sequences, like the infinite Fibonacci word or the Thue-Morse sequence, into instructions for the Turtle. 

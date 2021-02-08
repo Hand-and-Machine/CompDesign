@@ -6,3 +6,21 @@
 - A potential stumbling block is that, when using the Turtle, we must measure polygons by their exterior angles, not their interior angles
 	- These are supplementary to the interior angles
 - <details> <summary> Here's a geometry puzzle: if a circle is created (approximately) by repeatedly running <code>FORWARD x, RIGHT theta</code>, for some small value of <code>theta</code>, what will the radius of the approximated circle be? </summary> The radius is <code>x/(2*sin(theta/2))</code>, which is approximately <code>x/theta</code> for small values of <code>theta</code>. </details> 
+- Turtle geometry as an "embodied" alternative to Cartesian coordinate geometry
+- Distinction between intrinsic and extrinsic properties of figures; Turtle geometry favors the former
+	- The Turtle doesn't know or care what its absolute position and orientation are in space... it is more focused on relative position than absolute position
+	- Example: intrinsic property of curvature, distinguishing between a circle (constant curvature) and an ellipse (nonconstant curvature)
+- Turtle describes shapes procedurally, but Euclidean geometry describes them in statically, in terms of fixed/"crystallized" equations
+	- To allude to my metaphysics class from last sem: Euclidean geometry is more Parmenidean, Turtle geometry is more Heraclitean
+- <details><summary>A question elaborating on exercise 1.1.7: how many different (noncongruent) n-sided figures can <code>POLY</code> draw, including those that are made of two or more disjoint but superimposed polygons? Tee hee, the answer involves number theory.</summary> The answer is <code>phi(n)/2</code>, where <code>phi</code> is the Euler Totient function, which counts the number of positive integers less than and coprime to its argument.</details>
+- Exercise 1.1.14 suggests using its sample program a "the basis for some psychology experiments". More generally, outside of the context of this problem, could Turtle be used to experiment with our psychological intuition about geometry (particularly with children)?
+	- Connection with Bongard Problems?
+- Exercise 1.1.15: there are two possible ways to alter a simple circle-approximating procedure to make it approximate an ellipse instead, either (1) make the lengths of the sides vary, or (2) make the angles vary.
+- Closed-Path Theorem: The total turning along any closed path is an integer multiple of 360 degrees
+    - Simple (non-self-intersecting) paths can only have a rotation number of +1 or -1
+    - A path drawn by `POLY` closes precisely when the total turning equals a multiple of 360 degrees (except when `ANGLE = 0`)
+    - This theorem requires that programs be "pruned", i.e. that superfluous 360 degree turns be omitted
+    - I can think of another counterexample... in fact, an example where the "turning number" isn't even well-defined. Admittedly this is a somewhat contrived topological example, not something that would ever turn up in practice, but it bears mentioning. Suppose a Turtle starts at some point on the curve `y = x^2 * sin(1/x)` and follows the curve to the origin. I claim that the turning number at this point *cannot be well-defined* because the Turtle's heading fluctuates infinitely many times before it reaches the origin, yet it travels a finite path length on its way there.
+- Lots of different programs similar to `POLY` output pictures that can be subtended by "skeletons" of `POLY` polygons
+    - Note: they don't necessarily have the same symmetries, though... `POLY` polygons always have reflectional symmetry, but the "decorated" examples don't.
+
