@@ -100,10 +100,11 @@ def rotate_points_about_line(points, base_pt, vec, theta):
 
 	for pv in pvs:
 		diffv = pv - bpv
-		diffproj = np.dot(diffv, lv) / np.linalg.norm(lv)**2
+		diffproj = lv * np.dot(diffv, lv) / np.linalg.norm(lv)**2
 		projv = bpv + diffproj
 		rv1 = pv - projv
-		rv2 = np.cross(lv, rv1) / np.linalg.norm(lv)
+		rv2 = np.cross(lv, rv1)
+		rv2 = rv2 * np.linalg.norm(rv1) / np.linalg.norm(rv2)
 		new_pv = projv + rv1 * np.cos(theta) + rv2 * np.sin(theta)
 		new_pvs.append(new_pv)
 

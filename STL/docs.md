@@ -107,7 +107,8 @@ The Archimedean solids can be generated analogously using the constructor `Archi
 - `2` -> cuboctahedron
 - `3` -> truncated cube
 - `4` -> truncated octahedron
-- `6` -> truncated cuboctahedron
+- `7` -> snub cube
+- `8` -> icosidodecahedron
 - `9` -> truncated dodecahedron
 - `10` -> truncated icosahedron
 

@@ -184,12 +184,8 @@ class Solid:
 
 	def faces_with_edge(self, id1, id2):
 
-		faces_list = []
+		faces_list = [self.faces_by_edge[id1][id2], self.faces_by_edge[id2][id1]]
 
-		for f in self.faces:
-			if id1 in f.vertices and id2 in f.vertices:
-				faces_list.append(f)
-		
 		return faces_list
 
 	## returns the edges in counterclockwise order, pointing towards the vertex in question
@@ -325,13 +321,21 @@ class Solid:
 
 		return s
 
-	def conway_truncate(self, distance):
+	def conway_truncate(self, proportion):
 
 		s = self.copy()
 		vertices = self.vertices
 
-		for v in vertices:
-			s = s.truncate_vertex(s.add_vertex(v), distance)
+		for id in range(self.num_vertices):
+			v = self.vertices[id]
+			edge_vecs = [v - np.asarray(self.vertices[id2]) for id2 in self.adjacent_vertices_sorted(id)]
+			unit_edge_vecs = [ev / np.linalg.norm(ev) for ev in edge_vecs]
+			normal = sum(unit_edge_vecs)
+			normal = normal / np.linalg.norm(normal)
+			projections = [np.dot(normal, ev) for ev in edge_vecs]
+			min_projection = min(projections)
+			cut_distance = proportion * min_projection
+			s = s.truncate_vertex(s.add_vertex(v), cut_distance)
 
 		return s
 
@@ -345,9 +349,7 @@ class Solid:
 		normal = sum([unit_edge_vecs[id2] for id2 in unit_edge_vecs])
 		normal = normal / np.linalg.norm(normal)
 		cut_normal = -normal
-		edge_cutoffs = [1/np.dot(unit_edge_vecs[id2], normal) for id2 in unit_edge_vecs]
-		max_edge_cutoff = max(edge_cutoffs)
-		cut_normal = cut_normal * distance / max_edge_cutoff
+		cut_normal = cut_normal * distance
 		disp_vecs = {id2: unit_edge_vecs[id2] * np.linalg.norm(cut_normal)**2 / np.dot(unit_edge_vecs[id2], cut_normal) for id2 in unit_edge_vecs}
 		cut_pts = {id2: v + disp_vecs[id2] for id2 in disp_vecs}
 		face_normal = sum([self.face_normals[f] for f in self.faces if id in f.vertices])
@@ -368,6 +370,10 @@ class Solid:
 
 	def conway_expand(self, distance):
 
+		return self.conway_snub(distance, 0)
+
+	def conway_snub(self, distance, twist):
+
 		s = Solid(self.name)
 
 		center = self.center()
@@ -382,6 +388,8 @@ class Solid:
 
 			for id in f.vertices:
 				trans_vert = np.asarray(self.vertices[id]) + trans_vec
+				if twist != 0:
+					trans_vert = rotate_points_about_line([trans_vert], center, trans_vec, twist)[0]
 				trans_verts.append(trans_vert)
 				pushed_vertices[f][id] = trans_vert
 
@@ -397,9 +405,15 @@ class Solid:
 				if id1 < id2:
 
 					f1, f2 = self.faces_with_edge(id1, id2)
-					e1 = [pushed_vertices[f1][id1], pushed_vertices[f1][id2]]
-					e2 = [pushed_vertices[f2][id1], pushed_vertices[f2][id2]]
-					s.add_face_unordered(e1 + e2, center)
+					f1v1 = pushed_vertices[f1][id1]
+					f1v2 = pushed_vertices[f1][id2]
+					f2v1 = pushed_vertices[f2][id1]
+					f2v2 = pushed_vertices[f2][id2]
+					if twist == 0:
+						s.add_face([f1v1, f2v1, f2v2, f1v2])
+					else:
+						s.add_face([f1v1, f2v1, f2v2])
+						s.add_face([f2v2, f1v2, f1v1])
 
 		return s
 

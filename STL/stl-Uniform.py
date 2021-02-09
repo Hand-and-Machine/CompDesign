@@ -146,23 +146,41 @@ class ArchimedeanSolid(Solid):
 			self.overwrite(to)
 			self.origin_dilate(3)
 
-		## ID = 5 (rhombicuboctahedron) skipped for now
+		elif id == 5:
 
-		elif id == 6:
+			c = PlatonicSolid(self.name, 3, sidelength)
 
-			c = PlatonicSolid(self.name, 2, sidelength * 3 * 2**(1/2))
-			co = c.conway_truncate(1/2)
-			tco = co.conway_truncate(1/3)
+			dist = sidelength / 2**(1/2)
+			ce = c.conway_expand(dist)
 
-			self.overwrite(tco)
-			self.origin_dilate(3 * 2**(1/2))
+			self.overwrite(ce)
 
-		## ID = 7 (snub cube) and ID = 8 (icosidodecahedron) skipped for now
+		## ID = 6 (truncated cuboctahedron) skipped for now
+
+		elif id == 7:
+
+			## the Tribonacci Constant
+			tr = (1 + (19 - 3*33**(1/2))**(1/3) + (19 + 3*33**(1/2))**(1/3)) / 3
+			offset = (-1 + ((tr-1)/(2-tr))**(1/2)) / 2
+			twist = np.arctan((tr-1)/(tr+1))
+
+			c = PlatonicSolid(self.name, 3, sidelength)
+			sc = c.conway_snub(sidelength * offset, twist)
+
+			self.overwrite(sc)
+
+		elif id == 8:
+
+			i = PlatonicSolid(self.name, 5, sidelength)
+			id = i.conway_truncate(1/2)
+
+			self.overwrite(id)
+			self.origin_dilate(2)
 
 		elif id == 9:
 
 			dd = PlatonicSolid(self.name, 4, sidelength)
-			tdd = dd.conway_truncate(0.333)
+			tdd = dd.conway_truncate(1/3)
 
 			self.overwrite(tdd)
 			self.origin_dilate(3)
@@ -176,4 +194,3 @@ class ArchimedeanSolid(Solid):
 			self.origin_dilate(3)
 
 		## ID = 11 (rhombicosidodecahedron), ID = 12 (truncated icosidodecahedron), and ID = 13 (snub dodecahedron) skipped for now
-
