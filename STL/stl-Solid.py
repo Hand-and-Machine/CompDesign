@@ -39,6 +39,13 @@ class Face:
 		self.vertex_lookup = { vertex_ids[index]: index for index in range(self.num_sides) }
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
+	def vertex_coords(self, vertices):
+
+		print("hello world")
+		arr = [vertices[id] for id in self.vertices]
+		print(arr)
+		return arr
+
 	def center(self, vertices):
 
 		center = sum([np.asarray(vertices[id]) for id in self.vertices]) / self.num_sides
@@ -82,6 +89,16 @@ class Face:
 				new_vertices += replacements
 			else:
 				new_vertices += [vertices[i]]
+
+		return new_vertices
+
+	def insert_vertex_after(self, new_id, precursor_id, vertices):
+
+		precursor_pos = self.vertex_lookup[neighbor_id]
+		new_vertices = []
+		for id in self.vertices:
+			new_vertices.append(vertices[id])
+			if id == precursor_id: new_vertices.append(vertices[new_id])
 
 		return new_vertices
 
@@ -134,7 +151,7 @@ class Solid:
 	def add_face(self, pts):
 
 		num_pts = len(pts)
-		vertex_ids = [ self.add_vertex(p.copy()) for p in pts ]
+		vertex_ids = [ self.add_vertex(np.asarray(p).copy()) for p in pts ]
 
 		# failsafe to protect against duplicate entries
 		checked_vertex_ids = []
@@ -232,6 +249,8 @@ class Solid:
 		self.faces = []
 
 		self.join_solid(solid)
+
+		return self
 
 	## currently only supported for convex solids
 	def plane_slice(self, plane_point, plane_normal):
