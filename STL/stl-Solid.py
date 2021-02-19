@@ -41,9 +41,7 @@ class Face:
 
 	def vertex_coords(self, vertices):
 
-		print("hello world")
 		arr = [vertices[id] for id in self.vertices]
-		print(arr)
 		return arr
 
 	def center(self, vertices):
@@ -58,7 +56,8 @@ class Face:
 		p2 = np.asarray(vertices[self.vertices[2]])
 		v0 = p0 - p1
 		v1 = p1 - p2
-		normal = np.cross(v0, v1) / (np.linalg.norm(v0) * np.linalg.norm(v1))
+		normal = np.cross(v0, v1)
+		normal = normal / np.linalg.norm(normal)
 
 		return normal
 
@@ -92,13 +91,13 @@ class Face:
 
 		return new_vertices
 
-	def insert_vertex_after(self, new_id, precursor_id, vertices):
+	def insert_vertex_after(self, new_vertex, precursor_id, vertices):
 
-		precursor_pos = self.vertex_lookup[neighbor_id]
+		precursor_pos = self.vertex_lookup[precursor_id]
 		new_vertices = []
 		for id in self.vertices:
 			new_vertices.append(vertices[id])
-			if id == precursor_id: new_vertices.append(vertices[new_id])
+			if id == precursor_id: new_vertices.append(new_vertex)
 
 		return new_vertices
 
@@ -201,6 +200,9 @@ class Solid:
 
 	def faces_with_edge(self, id1, id2):
 
+		##print(self.faces_by_edge)
+		##print(id1)
+		##print(id2)
 		faces_list = [self.faces_by_edge[id1][id2], self.faces_by_edge[id2][id1]]
 
 		return faces_list
@@ -401,8 +403,7 @@ class Solid:
 		for f in self.faces:
 
 			face_center = f.center(self.vertices)
-			trans_vec = face_center - center
-			trans_vec = trans_vec * distance / np.linalg.norm(trans_vec)
+			trans_vec = distance * f.normal(self.vertices)
 			trans_verts = []
 
 			for id in f.vertices:

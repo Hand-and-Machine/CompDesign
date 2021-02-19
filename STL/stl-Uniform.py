@@ -155,7 +155,17 @@ class ArchimedeanSolid(Solid):
 
 			self.overwrite(ce)
 
-		## ID = 6 (truncated cuboctahedron) skipped for now
+		elif id == 6:
+
+			c1 = 1 + 2**(1/2)
+			c2 = 1 + 2*2**(1/2)
+
+			vertices = point_permutations(point_sign_combinations([(1,c1,c2)]))
+
+			tco = ConvexSolid.hull(name, vertices)
+			tco.origin_dilate(sidelength/2)
+
+			self.overwrite(tco)
 
 		elif id == 7:
 
@@ -193,4 +203,38 @@ class ArchimedeanSolid(Solid):
 			self.overwrite(ti)
 			self.origin_dilate(3)
 
-		## ID = 11 (rhombicosidodecahedron), ID = 12 (truncated icosidodecahedron), and ID = 13 (snub dodecahedron) skipped for now
+		elif id == 11:
+
+			phi = (1 + 5**(1/2))/2
+
+			vertices = [(1,1,phi**3), (phi**2,phi,2*phi), (2+phi,0,phi**2)]
+			vertices = point_sign_combinations(vertices)
+			vertices = point_cycles(vertices)
+
+			ricodd = ConvexSolid.hull(name, vertices)
+			ricodd.origin_dilate(sidelength/2)
+
+			self.overwrite(ricodd)
+
+		elif id == 12:
+
+			phi = (1 + 5**(1/2))/2
+
+			vertices = [(1/phi,1/phi,3+phi), (2/phi,phi,1+2*phi), (1/phi,phi**2,-1+3*phi), (2*phi-1,2,2+phi), (phi,3,2*phi)]
+			vertices = point_sign_combinations(vertices)
+			vertices = point_cycles(vertices)
+
+			ticodd = ConvexSolid.hull(name, vertices)
+			ticodd.origin_dilate(sidelength/2)
+
+			self.overwrite(ticodd)
+
+		elif id == 13:
+
+			offset = 0.867399
+			twist = 0.22874
+
+			dd = PlatonicSolid(name, 4, 1)
+			sdd = dd.conway_snub(offset, twist)
+
+			self.overwrite(sdd)

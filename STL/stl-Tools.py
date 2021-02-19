@@ -162,3 +162,28 @@ def segment_intersect_plane(point1, point2, plane_point, plane_normal):
 	coef2 = abs(np.dot(pv2 - ppv, nv) / np.linalg.norm(nv))
 
 	return (coef2 * pv1 + coef1 * pv2) / (coef1 + coef2)
+
+def point_sign_combinations(pts):
+
+	dim = len(pts[0])
+	pm_combos = [pm for pm in itertools.product([-1,1], repeat=dim)]
+        
+	new_pts = [np.multiply(p, pm) for p in pts for pm in pm_combos]
+	return new_pts
+
+def point_permutations(pts):
+
+	dim = len(pts[0])
+	point_perms = [np.asarray(perm) for p in pts for perm in itertools.permutations(p, dim)]
+	return point_perms
+
+def point_cycles(pts):
+
+	dim = len(pts[0])
+	print(pts)
+	point_cycs = []
+	for p in pts:
+		tp = tuple(p)
+		cycles = [np.asarray(tp[x:] + tp[:x]) for x in range(dim)]
+		point_cycs += cycles
+	return point_cycs

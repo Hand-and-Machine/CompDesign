@@ -24,14 +24,15 @@ class ConvexSolid(Solid):
 
     def horizon(self, visible_faces):
 
-        visible_edges = [e for f in visible_faces for e in f.edges]
+        if len(visible_faces) == 0: return []
+
+        visible_edges = {e for f in visible_faces for e in f.edges}
         horizon_edges = []
         for e in visible_edges:
             if (e[1], e[0]) not in visible_edges:
                 horizon_edges.append(e)
 
         horizon_dict = {e[0]: e for e in horizon_edges}
-        print(horizon_dict)
         last_edge = horizon_edges[0]
         horizon_verts = []
         for i in range(len(horizon_edges)):
@@ -44,14 +45,28 @@ class ConvexSolid(Solid):
 
         cs = ConvexSolid(self.name)
 
+        pv = np.asarray(vertex)
+        print(vertex)
         visible_faces = [f for f in self.faces if self.is_visible(f, vertex)]
         horizon = self.horizon(visible_faces)
+        ##print(horizon)
         horiz_length = len(horizon)        
 
         for i in range(horiz_length):
-            v1 = self.vertices[horizon[i]]
-            v2 = self.vertices[horizon[(i + 1) % horiz_length]]
-            cs.add_face([v1, v2, vertex])
+            id1 = horizon[i]
+            id2 = horizon[(i + 1) % horiz_length]
+            v1 = self.vertices[id1]
+            v2 = self.vertices[id2]
+            adj_face = self.faces_with_edge(id1, id2)[1]
+            cv = adj_face.center(self.vertices)
+            nv = adj_face.normal(self.vertices)
+            pj = abs(np.dot(nv, pv - cv))
+            if abs(np.dot(nv, pv - cv)) > self.error:
+                cs.add_face([v1, v2, vertex])
+            else:
+                visible_faces.append(adj_face)
+                new_vertices = adj_face.insert_vertex_after(pv, id2, self.vertices)
+                cs.add_face(new_vertices)
 
         for f in self.faces:
             if f not in visible_faces: cs.add_face(f.vertex_coords(self.vertices))
@@ -73,5 +88,27 @@ class ConvexSolid(Solid):
 
         for f in itertools.combinations([p1,p2,p3,p4], 3):
             cs.add_face_unordered(f, cv)
+
+        return cs
+
+    def hull(name, pts, error=1e-7):
+
+        pv1 = np.asarray(pts[0])
+        pv2 = np.asarray(pts[1])
+        pv3 = np.asarray(pts[2])
+        cv = (pv1 + pv2 + pv3) / 3
+        nv = np.cross(pv2-pv1, pv3-pv2)
+        nv = nv / np.linalg.norm(nv)
+        proj = 0
+        id4 = 3
+        pv4 = np.asarray(pts[id4])
+        while abs(np.dot(nv, pv4 - cv)) < error:
+            id4 += 1
+            pv4 = np.asarray(pts[id4])
+        remaining_pts = [pts[i] for i in range(len(pts)) if i not in [0,1,2,id4]]
+
+        cs = ConvexSolid.tetrahedron(name, pv1, pv2, pv3, pv4)
+        for p in remaining_pts:
+            cs.add_hull_vertex(p)
 
         return cs
