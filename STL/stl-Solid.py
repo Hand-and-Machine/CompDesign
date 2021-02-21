@@ -39,6 +39,14 @@ class Face:
 		self.vertex_lookup = { vertex_ids[index]: index for index in range(self.num_sides) }
 		self.edges = [(vertex_ids[i], vertex_ids[(i + 1) % self.num_sides]) for i in range(0, self.num_sides)]
 
+	def vertex_string(self):
+
+		vert_str = ""
+		for id in self.vertices:
+			vert_str += str(id) + " "
+
+		return vert_str
+
 	def vertex_coords(self, vertices):
 
 		arr = [vertices[id] for id in self.vertices]
@@ -147,18 +155,22 @@ class Solid:
 
 	# adds a new (oriented) face to the solid, along with any necessary new vertices
 	# pts is a list of points (tuples) and ints, where the ints refer to preexisting points in the solid
-	def add_face(self, pts):
+	def add_face(self, pts, ids=[]):
 
 		num_pts = len(pts)
-		vertex_ids = [ self.add_vertex(np.asarray(p).copy()) for p in pts ]
+		vertex_ids = ids
 
-		# failsafe to protect against duplicate entries
-		checked_vertex_ids = []
-		for i in range(0, num_pts):
-			if vertex_ids[(i + 1) % num_pts] != vertex_ids[i]:
-				checked_vertex_ids.append(vertex_ids[i])
-		num_pts = len(checked_vertex_ids)
-		vertex_ids = checked_vertex_ids
+		if ids == []:
+
+			vertex_ids = [ self.add_vertex(np.asarray(p).copy()) for p in pts ]
+
+			# failsafe to protect against duplicate entries
+			checked_vertex_ids = []
+			for i in range(0, num_pts):
+				if vertex_ids[(i + 1) % num_pts] != vertex_ids[i]:
+					checked_vertex_ids.append(vertex_ids[i])
+			num_pts = len(checked_vertex_ids)
+			vertex_ids = checked_vertex_ids
 
 		face = Face(vertex_ids)
 		self.faces.append(face)
@@ -200,9 +212,6 @@ class Solid:
 
 	def faces_with_edge(self, id1, id2):
 
-		##print(self.faces_by_edge)
-		##print(id1)
-		##print(id2)
 		faces_list = [self.faces_by_edge[id1][id2], self.faces_by_edge[id2][id1]]
 
 		return faces_list
@@ -232,9 +241,20 @@ class Solid:
 
 		for v in self.vertices: v += np.asarray(trans)
 
+		return self
+
+	def center_at_origin(self):
+
+		cv = self.center()
+		self.translate(-cv)
+
+		return self
+
 	def origin_dilate(self, factor):
 
 		for v in self.vertices: v = v * factor
+
+		return self
 
 	def join_solid(self, solid):
 
@@ -474,3 +494,37 @@ class Solid:
 		f.close()
 
 		return self
+
+	def save(self, filename):
+
+		file = open(filename + ".solid", 'w')
+
+		file.write("VERTICES:\n")
+		for v in self.vertices:
+			x = str(v[0])
+			y = str(v[1])
+			z = str(v[2])
+			file.write(x + " " + y + " " + z + "\n")
+
+		file.write("FACES:\n")
+		for f in self.faces:
+			file.write(f.vertex_string() + "\n")
+
+	def load(filename, name):
+
+		s = Solid(name)
+
+		with open(filename + ".solid", 'r') as file:
+
+			section = 0
+			for line in file:
+				if line in ["VERTICES:\n", "FACES:\n"]:
+					section += 1
+				elif section == 1:
+					verts = [float(x) for x in line.split()]
+					s.add_vertex(verts, check_equality=False)
+				elif section == 2:
+					ids = [int(id) for id in line.split()]
+					s.add_face([], ids=ids)
+
+		return s

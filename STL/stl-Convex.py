@@ -46,10 +46,8 @@ class ConvexSolid(Solid):
         cs = ConvexSolid(self.name)
 
         pv = np.asarray(vertex)
-        print(vertex)
         visible_faces = [f for f in self.faces if self.is_visible(f, vertex)]
         horizon = self.horizon(visible_faces)
-        ##print(horizon)
         horiz_length = len(horizon)        
 
         for i in range(horiz_length):
