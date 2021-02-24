@@ -25,12 +25,19 @@ class Face:
 
     def __init__(self, vertex_ids, supersolid):
 
-        self.vertex_ids = vertex_ids
-        self.num_sides = len(vertex_ids)
-        self.vertex_lookup = { vertex_ids[index]: index for index in range(self.num_sides) }
+        self.vertex_ids = vertex_ids[:]
+        self.num_sides = len(self.vertex_ids)
+        self.vertex_lookup = { self.vertex_ids[index]: index for index in range(self.num_sides) }
         self.edges = [(self.get_id(i), self.get_id(i+1)) for i in range(self.num_sides)]
 
         self.solid = supersolid
+
+    ## Set the Solid that this face belongs to
+    def set_supersolid(self, supersolid):
+
+        self.solid = supersolid
+        supersolid.faces.append(self)
+        return self
 
     ## Get the ID of a vertex at a given index
     def get_id(self, index):
@@ -59,21 +66,28 @@ class Face:
         pv0 = self.get_coords(0)
         pv1 = self.get_coords(1)
         pv2 = self.get_coords(2)
-        v0 = p0 - p1
-        v1 = p1 - p2
+        v0 = pv0 - pv1
+        v1 = pv1 - pv2
         normal = np.cross(v0, v1)
         normal = normal / np.linalg.norm(normal)
 
         return normal
 
     ## Determine whether the face (facet) is visible from the given point
-    def is_visible(self, standpoint):
+    def is_visible(self, standpoint, strict=True):
 
         pv = np.asarray(standpoint)
         cv = self.center()
         nv = self.normal()
 
-        return (np.dot(nv, pv - cv) > self.solid.error)
+        if strict:
+            return (np.dot(nv, pv - cv) > self.solid.error)
+        else:
+            return (np.dot(nv, pv - cv) > -self.solid.error)
+
+    ## Clone this Face and return the clone
+    def copy(self):
+        return Face(self.vertex_ids, None)
 
     ## Cut the fact up into Triangles for STL generation
     def build(self):
@@ -158,7 +172,53 @@ class Solid:
             self.add_edge(id, next_id)
             self.faces_by_vertex[id].append(face)
             self.faces_by_edge[id][next_id] = face
-    
+
+    ## Find the faces with a given edge, starting with the face containing that edge in the correct orientation
+    def faces_with_edge(self, id1, id2):
+
+        faces_list = [self.faces_by_edge[id1][id2], self.faces_by_edge[id2][id1]]
+        return faces_list  
+ 
+    ## Clone this Solid and return its clone
+    def copy(self, name):
+        
+        s = Solid(name, error=self.error)
+        s.vertices = [np.copy(v) for v in self.vertices]
+        s.num_vertices = self.num_vertices
+        s.edges = [vs.copy() for vs in self.edges]
+
+        face_clones = {f: f.copy().set_supersolid(s) for f in self.faces}
+        s.faces = [face_clones[f] for f in face_clones]
+        s.faces_by_vertex = [[face_clones[f] for f in fs] for fs in self.faces_by_vertex]
+        s.faces_by_edge = [{id: face_clones[fs[id]] for id in fs} for fs in self.faces_by_edge]
+
+        return s
+
+    ## Overwrite this Solid with a clone of another Solid
+    def overwrite(self, solid):
+
+        self.error = solid.error
+        self.vertices = [np.copy(v) for v in solid.vertices]
+        self.num_vertices = solid.num_vertices
+        self.edges = [vs.copy() for vs in solid.edges]
+
+        face_clones = {f: f.copy().set_supersolid(self) for f in solid.faces}
+        self.faces = [face_clones[f] for f in face_clones]
+        self.faces_by_vertex = [[face_clones[f] for f in fs] for fs in solid.faces_by_vertex]
+        self.faces_by_edge = [{id: face_clones[fs[id]] for id in fs} for fs in solid.faces_by_edge]
+
+        return self
+
+    ## Dilate this Solid about the origin by a given factor
+    def origin_dilate(self, factor):
+
+        for v in self.vertices: v = v * factor
+        return self
+
+    def center(self):
+
+        return sum(self.vertices) / self.num_vertices
+ 
     ## Generate the Triangles for each face, to be used for STL generation
     def build(self):
 
@@ -202,7 +262,7 @@ class Solid:
         for f in self.faces:
             file.write(stringify_vec(f.vertex_ids) + "\n")
 
-    ## Load preexisting data from a .solid file into this solid
+    ## Load preexisting data from a .solid file into a new Solid and return it
     def load(filename, name):
 
         s = Solid(name)
@@ -229,7 +289,7 @@ class Solid:
 
         visible_edges = {e for f in faces for e in f.edges}
         boundary_edges = []
-        for e in boundary_edges:
+        for e in visible_edges:
             if (e[1], e[0]) not in visible_edges:
                 boundary_edges.append(e)
 
