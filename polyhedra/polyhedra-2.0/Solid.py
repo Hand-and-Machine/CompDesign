@@ -44,6 +44,11 @@ class Face:
 
         return self.vertex_ids[index % self.num_sides]
 
+    ## Get the vertex counterclockwise from that with a given ID
+    def next_id(self, id):
+
+        return self.vertex_ids[(self.vertex_lookup[id]+1) % self.num_sides]
+
     ## Get the coordinates of a vertex at a given index
     def get_coords(self, index):
 
@@ -72,6 +77,22 @@ class Face:
         normal = normal / np.linalg.norm(normal)
 
         return normal
+
+    ## Calculate a generalization of the normal, for degenerate faces
+    def degenerate_normal(self):
+
+        avg_normal = np.asarray([0.0,0.0,0.0])
+        for index in range(self.num_sides):
+            pv0 = self.get_coords(index)
+            pv1 = self.get_coords(index+1)
+            pv2 = self.get_coords(index+2)
+            v0 = pv0 - pv1
+            v1 = pv1 - pv2
+            normal = np.cross(v0, v1)
+            avg_normal += normal/np.linalg.norm(normal)
+        avg_normal = avg_normal/np.linalg.norm(avg_normal)
+
+        return avg_normal
 
     ## Determine whether the face (facet) is visible from the given point
     def is_visible(self, standpoint, strict=True):
@@ -122,6 +143,11 @@ class Solid:
 
         return self.vertices[id]
 
+    ## Return the IDs of vertices adjacent to a vertex with given ID
+    def get_neighbors(self, id):
+
+        return self.edges[id]
+
     ## Add a vertex if it has not already been added, returning the ID
     def add_vertex(self, v, check_equality=True):
 
@@ -162,6 +188,10 @@ class Solid:
                 next_id = self.add_vertex(pts[(i + 1) % num_pts])
                 if id != next_id:
                     vertex_ids.append(id)
+
+        else:
+
+            num_pts = len(ids)
 
         face = Face(vertex_ids, self)
         self.faces.append(face)
@@ -212,13 +242,70 @@ class Solid:
     ## Dilate this Solid about the origin by a given factor
     def origin_dilate(self, factor):
 
-        for v in self.vertices: v = v * factor
+        self.vertices = [v*factor for v in self.vertices]
         return self
 
+    ## Calculate the center (centroid) of this solid
     def center(self):
 
         return sum(self.vertices) / self.num_vertices
- 
+
+    ## Return the dual of this Solid
+    ## WARNING: The result may have degenerate faces
+    def conway_dual(self):
+
+        s = Solid(self.name)
+
+        for id in range(self.num_vertices):
+            vertex = self.get_vertex(id)
+            neighbors = self.get_neighbors(id)
+            for neighbor_id in neighbors: break
+            face_centers = []
+            for k in range(len(neighbors)):
+                face = self.faces_with_edge(neighbor_id, id)[0]
+                face_centers.insert(0, face.center())
+                neighbor_id = face.next_id(id)
+            s.add_face(face_centers)
+
+        return s
+
+    ## Return the Solid formed by applying the conway "kis" operator to this Solid
+    ## with a specified outward/inward offset
+    def conway_kis(self, distance):
+
+        s = Solid(self.name)
+        
+        for face in self.faces:
+            center = face.center()
+            normal = face.degenerate_normal()
+            peak = center + distance * normal
+            for index in range(face.num_sides):
+                pv0 = face.get_coords(index)
+                pv1 = face.get_coords(index+1)
+                triangle_pts = [peak, pv0, pv1]
+                s.add_face(triangle_pts)
+
+        return s
+
+    ## Attempts to smooth out degenerate "faces" with noncoplanar vertices
+    def smooth_faces(self, coef, n):                
+
+        new_vertices = [np.copy(v) for v in self.vertices]
+
+        for k in range(n):
+            for face in self.faces:
+                gnormal = face.degenerate_normal()
+                center = face.center()
+                for id in face.vertex_ids:
+                    v = face.get_coords(id)
+                    dv = v - center
+                    proj = gnormal * np.dot(dv, gnormal)
+                    perturb_v = -coef * proj
+                    new_vertices[id] += perturb_v
+            self.vertices = new_vertices
+
+        return self 
+
     ## Generate the Triangles for each face, to be used for STL generation
     def build(self):
 

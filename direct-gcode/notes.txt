@@ -1,0 +1,21 @@
+Trial 1: "Pug Buddy" sample print, bottomup_perturb with a maximum perturbance of 5 and a power of 1. Took 6 hours and 43 minutes to print.
+
+Trial 2: "Pug Buddy" sample print, onesided_perturb with a perturbance of 2. Took 4 hours and 3 minutes to print.
+
+Trial 3: "Pug Buddy" sample print, bottomup_perturb with a maximum perturbance of 1 and a power of 2. Forgot to write down how long it took, whoops!
+
+Trial 4: "Pug Buddy" sample print, omit_steep_lines with a maximum slope of 2. Took 2 hours and 14 minutes to print. Barely looks different from the original print - maybe there's something wrong with my code.
+
+Trial 5: "Pug Buddy" sample print, omit_steep_lines with a maximum slope of 0.5. Failed. I tried it twice, both times the plastic peeled up from the bed and began scraping against the extruder.
+
+Trial 6: "Pug Buddy" sample print, bottomup_squeeze with a squeeze coefficient of 0 and a power of 1. Took 2 hours and 44 minutes to print. First attempt failed (plastic detached from bed).
+
+Trial 7: "Pug Buddy" sample print, bottomup_squeeze with a squeeze coefficient of 0 and a power of 1. Took 1 hour and 58 minutes to print. First 2-3 attempts failed due to detachment from bed. Appears to have only been squeezed in the y-direction.
+
+Trial 8: "Pug Buddy" sample print, bottomup_squeeze with a squeeze coefficient of 0 and a power of 1. Forgot to write down how long it took. Fixed code from last tiem, but forgot to adjust E-values so the pug ended up with a blob of extra plastic on its head. Trying again.
+
+Trial 9: "Pug Buddy" sample print, bottomup_squeeze with a squeeze coefficient of 0 and a power of 1. Took 1 hour and 39 minutes to print.
+
+Trial 10: "Pug Buddy" sample print, bottomup_twist with a swist of PI. Took 2 hours and 14 minutes to print. Appears to only have twisted PI/2 radians.
+
+Trial 11: "Pug Buddy" sample print, bottomup_twist with a twist of 2PI. Took 2 hours and 14 minutes to print.

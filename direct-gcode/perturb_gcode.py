@@ -14,10 +14,11 @@ with open(filename) as file:
         if match:
             num_moves += 1
             perturbance = num_moves * MAX_PERTURBANCE / 20000
+            print(perturbance)
             qx = float(match[1])
             qy = float(match[2])
             qe = float(match[3])
-            qx += MAX_PERTURBANCE * (2*random.random() - 1)
+            qx += perturbance * (2*random.random() - 1)
             new_command = "G1 X" + str(qx) + " Y" + str(qy) + " E" + str(qe) + "\n"
             new_gcode += new_command
         else:

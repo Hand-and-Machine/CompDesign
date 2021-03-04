@@ -1,0 +1,15 @@
+What are some interesting things I could do by directly editing the GCODE of a 3D print? NOTE that the most interesting possibilities are those that aren't possible/easy to do with software like Rhino or by modifying STL files. The ability to, say, print 2 copies of a solid rather than one by editing the GCODE is an interesting exercise in writing GCODE, but it doesn't offer any new designs. How can we modify local behavior to produce novel structures?
+- Random perturbations to make it look more messy/layered
+    - Random perturbation that changes in magnitude at different Z-values
+- Omissions: omit moves that satisfy certain conditions
+    - If the x,y coordinates lie within a certain region, ignore the move
+    - If the x,y slope of the movement falls within a certain range, don't extrude during the movement
+    - Omit lines that are longer/shorter than a certain length... maybe this can be used to print only the interior "waffling" of a sliced file by omitting the curvy outside
+- Rotate, dilate, or squeeze the coordinate system slowly as we go up the solid, producing a "twisted" version
+
+Challenges:
+- Some of the GCODE is necessary to calibrate the printer (and possibly even avoid damaging it), so we must be careful when editing it directly
+- We're not allowed to access global information about the solid, but we still have to manipulate the instructions in a way that avoids collisions or printing free-floating lengths of unsupported filament
+
+Other notes:
+- Here's how vertical movement seems to work, from what I can tell by reading the GCODE file. While working on a single layer, the Z position may sometimes increase in order to allow the extruder to move to a different position without scraping the surface, and then it will move back down. Usually, the upwards Z movement is also accompanied by an F command in the form "G1 Z[somefloat] F[somefloat]", and the downwards movement consists of a command of the form "G1 Z[somefloat]".
