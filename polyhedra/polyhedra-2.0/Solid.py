@@ -326,6 +326,51 @@ class Solid:
         print(s)
         return s
 
+    def conway_expand(self, distance):
+
+        return self.conway_expand(distance, 0)
+
+    def conway_snub(self, distance, twist):
+
+        s = Solid(self.name)
+
+        center = self.center()
+        pushed_vertices = {f: {id: np.asarray((0,0,0)) for id in f.vertex_ids} for f in self.faces}
+
+        for f in self.faces:
+            face_center = f.center()
+            trans_vec = distance * f.normal()
+            trans_verts = []
+            for id in f.vertex_ids:
+                trans_vert = self.get_vertex(id) + trans_vec
+                if twist != 0:
+                    trans_vert = rotate_about_line(trans_vert, center, trans_vec, twist)
+                trans_verts.append(trans_vert)
+                pushed_vertices[f][id] = trans_vert
+            s.add_face(trans_verts)
+
+        for id in range(self.num_vertices):
+            pushed_copies = [pushed_vertices[f][id] for f in self.faces_with_vertex(id)]
+            pushed_copies.reverse()
+            s.add_face(pushed_copies)
+
+        for id1 in range(0, self.num_vertices):
+            for id2 in self.edges[id1]:
+                if id1 < id2:
+                    f1, f2 = self.faces_with_edge(id1, id2)
+                    f1v1 = pushed_vertices[f1][id1]
+                    f1v2 = pushed_vertices[f1][id2]
+                    f2v1 = pushed_vertices[f2][id1]
+                    f2v2 = pushed_vertices[f2][id2]
+                    if twist == 0:
+                        s.add_face([f1v1, f2v1, f2v2, f1v2])
+                    else:
+                        s.add_face([f1v1, f2v1, f2v2])
+                        s.add_face([f2v2, f1v2, f1v1])
+
+        return s
+            
+
     ## Truncates a vertex with a given ID at a given depth
     def truncate_vertex(self, id, distance):
 

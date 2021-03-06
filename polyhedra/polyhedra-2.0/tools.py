@@ -16,3 +16,16 @@ def multireplace(arr, x, sub_arr):
         else:
             new_arr += [entry]
     return new_arr
+
+def rotate_about_line(point, base_pt, vec, theta):
+    pv = np.asarray(point)
+    bpv = np.asarray(base_pt)
+    lv = np.asarray(vec)
+    diffv = pv - bpv
+    diffproj = lv * np.dot(diffv, lv) / np.linalg.norm(lv)**2
+    projv = bpv + diffproj
+    rv1 = pv - projv
+    rv2 = np.cross(lv, rv1)
+    rv2 = rv2 * np.linalg.norm(rv1) / np.linalg.norm(rv2)
+    new_pv = projv + rv1 * np.cos(theta) + rv2 * np.sin(theta)
+    return new_pv
