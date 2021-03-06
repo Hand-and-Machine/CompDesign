@@ -49,6 +49,11 @@ class Face:
 
         return self.vertex_ids[(self.vertex_lookup[id]+1) % self.num_sides]
 
+    ## Get the vertex clockwise from that with a given ID
+    def prev_id(self, id):
+
+        return self.vertex_ids[(self.vertex_lookup[id]-1) % self.num_sides]
+
     ## Get the coordinates of a vertex at a given index
     def get_coords(self, index):
 
@@ -148,6 +153,14 @@ class Solid:
 
         return self.edges[id]
 
+    ## Return a sorted list of IDs of vertices adjacent to a vertex with the given ID
+    def get_neighbors_sorted(self, id):
+
+        neighbor_ids = [face.next_id(id) for face in self.faces_with_vertex(id)]
+        neighbor_ids.reverse()
+        
+        return neighbor_ids
+
     ## Add a vertex if it has not already been added, returning the ID
     def add_vertex(self, v, check_equality=True):
 
@@ -203,6 +216,19 @@ class Solid:
             self.faces_by_vertex[id].append(face)
             self.faces_by_edge[id][next_id] = face
 
+    ## Find the faces with a given vertex, sorted in counterclockwise order about the vertex
+    def faces_with_vertex(self, id):
+
+        faces = []
+        for next_id in self.edges[id]: break
+        num_faces = len(self.edges[id])
+        for i in range(num_faces):
+            face = self.faces_with_edge(next_id, id)[0]
+            faces.append(face)
+            next_id = face.next_id(id)
+
+        return faces
+
     ## Find the faces with a given edge, starting with the face containing that edge in the correct orientation
     def faces_with_edge(self, id1, id2):
 
@@ -257,14 +283,7 @@ class Solid:
         s = Solid(self.name)
 
         for id in range(self.num_vertices):
-            vertex = self.get_vertex(id)
-            neighbors = self.get_neighbors(id)
-            for neighbor_id in neighbors: break
-            face_centers = []
-            for k in range(len(neighbors)):
-                face = self.faces_with_edge(neighbor_id, id)[0]
-                face_centers.insert(0, face.center())
-                neighbor_id = face.next_id(id)
+            face_centers = [face.center() for face in self.faces_with_vertex(id)]
             s.add_face(face_centers)
 
         return s
@@ -286,6 +305,54 @@ class Solid:
                 s.add_face(triangle_pts)
 
         return s
+
+    ## Returns the Solid formed by applying the conway "truncate" operator to this Solid
+    ## with each cut depth equal to a given proportion of the maximum depth
+    def conway_truncate(self, proportion):
+
+        s = self.copy(self.name)
+        vertices = self.vertices
+
+        for id in range(self.num_vertices):
+            v = self.get_vertex(id)
+            edge_vecs = [v - self.get_vertex(id2) for id2 in self.get_neighbors_sorted(id)]
+            unit_edge_vecs = [ev / np.linalg.norm(ev) for ev in edge_vecs]    
+            normal = sum(unit_edge_vecs)
+            normal = normal / np.linalg.norm(normal)
+            min_projection = min([np.dot(normal, ev) for ev in edge_vecs])
+            cut_distance = proportion * min_projection
+            s = s.truncate_vertex(s.add_vertex(v), cut_distance)
+
+        print(s)
+        return s
+
+    ## Truncates a vertex with a given ID at a given depth
+    def truncate_vertex(self, id, distance):
+
+        s = Solid(self.name)
+        v = self.get_vertex(id)
+
+        edge_vecs = {id2: v - self.get_vertex(id2) for id2 in self.get_neighbors_sorted(id)}
+        for id2 in edge_vecs: edge_vecs[id2] = edge_vecs[id2] / np.linalg.norm(edge_vecs[id2])
+        normal = sum([edge_vecs[id2] for id2 in edge_vecs])
+        normal = normal / np.linalg.norm(normal)
+        cut_normal = -normal * distance
+        disp_vecs = {id2: edge_vecs[id2] * distance**2 / np.dot(edge_vecs[id2], cut_normal) for id2 in edge_vecs}
+        cut_pts = {id2: v + disp_vecs[id2] for id2 in disp_vecs}
+        face_normal = sum([face.normal() for face in self.faces_with_vertex(id)])
+        s.add_face([cut_pts[id2] for id2 in cut_pts])
+
+        for f in self.faces:
+            vertices = f.all_coords()
+            if id in f.vertex_ids:
+                cut1 = cut_pts[f.prev_id(id)]
+                cut2 = cut_pts[f.next_id(id)]
+                new_vertices = multireplace(vertices, v, [cut1, cut2])
+                s.add_face(new_vertices)
+            else:
+                s.add_face(vertices)
+
+        return s 
 
     ## Attempts to smooth out degenerate "faces" with noncoplanar vertices
     def smooth_faces(self, coef, n):                
