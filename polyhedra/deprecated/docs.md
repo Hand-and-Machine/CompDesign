@@ -1,11 +1,10 @@
 This folder contains Python scripts I've written to generate 3D geometrical forms as STL files by directly writing the contents of the STL files. I'm sure something similar has been done before by someone else, so I may be reinventing the wheel... but hey, I'm learning a lot by doing this!
 
 Here's a list of the code files with descriptions of their functions:
-- `stl-Tools.py` contains a bunch of functions that are useful for geometrical constructions in 3D.
-- `stl-Solid.py` defines the basic classes like `Triangle`, `Face` and `Solid` that are used to build solids.
-- `stl-Common.py` defines "shortcut" classes for some common solids.
-- `stl-Uniform.py` defines classes for constructing the uniform polyhedra.
-- `stl-Load.py` can be used to load the above files all at once and in the correct order.
+- `tools.py` contains a bunch of functions that are useful for geometrical constructions in 3D.
+- `Solid.py` defines the basic classes `Triangle`, `Face` and `Solid` that are used to build solids and generate STL files.
+- `ConvexSolid.py` implements a (rather inefficient) convex hull algorithm and some other tools for dealing with convex solids.
+- `PlatonicSolid.py` and `ArchimedeanSolid.py` can be used to load pre-constructed Platonic and Archimedean solids.
 
 Here's a table of contents if you want to read about any of the above in greater detail:
 

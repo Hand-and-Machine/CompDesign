@@ -265,6 +265,13 @@ class Solid:
 
         return self
 
+    ## Translate this Solid by a given vector
+    def translate(self, trans):
+
+        trans_vec = np.asarray(trans)
+        self.vertices = [v + trans_vec for v in self.vertices]
+        return self
+
     ## Dilate this Solid about the origin by a given factor
     def origin_dilate(self, factor):
 
@@ -284,6 +291,7 @@ class Solid:
 
         for id in range(self.num_vertices):
             face_centers = [face.center() for face in self.faces_with_vertex(id)]
+            face_centers.reverse()
             s.add_face(face_centers)
 
         return s
@@ -400,23 +408,25 @@ class Solid:
         return s 
 
     ## Attempts to smooth out degenerate "faces" with noncoplanar vertices
-    def smooth_faces(self, coef, n):                
+    def smooth_faces(self, n):                
 
-        new_vertices = [np.copy(v) for v in self.vertices]
+        vertex_images = [[] for id in range(self.num_vertices)]
 
-        for k in range(n):
-            for face in self.faces:
-                gnormal = face.degenerate_normal()
-                center = face.center()
-                for id in face.vertex_ids:
-                    v = face.get_coords(id)
-                    dv = v - center
-                    proj = gnormal * np.dot(dv, gnormal)
-                    perturb_v = -coef * proj
-                    new_vertices[id] += perturb_v
-            self.vertices = new_vertices
+        for f in self.faces:
+            plane_pt = f.center()
+            plane_vec = f.degenerate_normal()
+            for id in f.vertex_ids:
+                v = self.get_vertex(id)
+                dv = v - plane_pt
+                height_v = np.dot(dv, plane_vec) * plane_vec
+                proj_v = dv - height_v
+                v_image = plane_pt + proj_v
+                vertex_images[id].append(v_image)
 
-        return self 
+        self.vertices = [sum(images) / len(images) for images in vertex_images]
+
+        if n > 1: return self.smooth_faces(n-1)
+        else: return self
 
     ## Generate the Triangles for each face, to be used for STL generation
     def build(self):
