@@ -1,0 +1,13 @@
+This list of trials isn't complete, because it wasn't until I had already done a bunch of trials that I realized keeping notes would probably be a good idea.
+
+PILLARS/TEXTILE:
+- added ext.extrude(-1) in an attempt to remove strands. Result: the rectangular pillars are not being printed entirely (one of them looks just like a point pillar, the other looks like a flat wall)
+- removed ext.extrude(-1) lines to see what would happen. Result: same exact problem, but with more strings. Something must be wrong with my extruder code
+- removed ext.dwell() lines, in case that is causing a problem. Also fixed ext.lift() so that it doesn't reverse-extrude. Result: same problem as before (almost), both rectangular pillars just end up looking like flat walls.
+- I hadn't actually gotten rid of all of the extrude(-1) statements, so I just commented out the second one. Result: 
+- 
+
+WAFER:
+- wafer looks completely flat, and has smaller dimensions than it should. Trying again. Result: semicircular pillars are being drawn (not full circles), and the spiral on top has become loose rather than becoming a solid rectangle.
+- added a dwell=100ms to the rectangular spiral on the top layer to see if it would stop the dragging (by allowing the plastic to solidify). Result: the spirals seemed slightly less deformed this time, but not much.
+-  

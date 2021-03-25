@@ -336,7 +336,7 @@ class Solid:
 
     def conway_expand(self, distance):
 
-        return self.conway_expand(distance, 0)
+        return self.conway_snub(distance, 0)
 
     def conway_snub(self, distance, twist):
 

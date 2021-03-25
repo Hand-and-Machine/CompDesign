@@ -1,0 +1,7 @@
+README.md
+setup.py
+polyhedra.egg-info/PKG-INFO
+polyhedra.egg-info/SOURCES.txt
+polyhedra.egg-info/dependency_links.txt
+polyhedra.egg-info/not-zip-safe
+polyhedra.egg-info/top_level.txt
