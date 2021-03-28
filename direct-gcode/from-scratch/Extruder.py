@@ -11,6 +11,10 @@ class Extruder:
         self.position_cache = (0,0,0)
         self.density_cache = 0
 
+    def feedrate(self, f):
+        cmd = "G1 F" + str(f)
+        self.gcode.append(cmd)
+
     def dwell(self, ms):
         cmd = "G04 P" + str(ms)
         self.gcode.append(cmd)
@@ -19,7 +23,8 @@ class Extruder:
         cmd = "G1 E" + str(e)
         self.gcode.append(cmd)
 
-    def drawline(self, x, y, z=0):
+    def drawline(self, x, y, z=-1):
+        if z < 0: z = self.z
         dist = ((x-self.x)**2+(y-self.y)**2+(z-self.z)**2)**(1/2)
         extrude = dist * self.density
         cmd = "G1"
@@ -57,7 +62,7 @@ class Extruder:
         self.cache_density()
         self.set_density(0)
         if z == 0:
-            self.drawline(x, y, self.z)
+            self.drawline(x, y)
         else:
             self.drawline(x, y, z)
         self.reset_density()
@@ -84,12 +89,32 @@ class Extruder:
         self.reset_density()
 
     def initialize(self):
-        cmd = "G90\nM83\nM104 S215\nM140 S60\nM190 S60\nM109 S215\nG21\nG92 E0\nG28 W\nG80\n"
-        self.gcode.append(cmd)
+        init_cmd = '\n'.join([
+                        "G90",                  ## Absolute coordinates
+                        "M83",                  ## E-axis relative coords
+                        "G21",                  ## Set units to mm
+                        "M104 S215",            ## Set hotend temp
+                        "M140 S60",             ## Set bed temp
+                        "M109 S215",            ## Wait for hotend to heat
+                        "M190 S60",             ## Wait for bed to heat
+                        "G28 W",                ## Go to home
+                        "G80",                  ## Mesh bed levelling
+                        "G1 Y-3 F1000",         ## Go out of bounds
+                        "G1 X60 E9 F1000",      ## Draw test line
+                        "G1 X100 E12.5 F1000",  ## Draw test line
+                        "G92 E0"                ## Set E-axis to zero
+                    ])
+        self.gcode.append(init_cmd)
 
     def finalize(self):
-        cmd = "\nM104 S0\nM140 S0\nM107\nG1 Z81.5\nM84"
-        self.gcode.append(cmd)
+        init_cmd = '\n'.join([
+                        "M104 S0",      ## Cool hotend
+                        "M140 S0",      ## Cool bed
+                        "M107",         ## Turn off fan
+                        "G1 Z200",      ## Move extruder upwards
+                        "M84"           ## Disable motors
+                    ])
+        self.gcode.append(init_cmd)
 
     ## WARNING: will overwrite files!
     def save(self, filename):
