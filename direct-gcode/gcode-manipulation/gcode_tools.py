@@ -2,10 +2,13 @@ import sys
 import re
 import random
 
+## Calculate the squared distance between two points.
 def norm_dist(p1, p2):
     dim = len(p1)
     return sum([(p1[i]-p2[i])**2 for i in range(dim)])
 
+## Given a GCODE command, extract the X, Y, Z, and E coordinates
+## if it is a G1 linear interpolation command.
 def extract_coords(command):
     coords = [False, False, False, False]
     xmatch = re.match("G1( .*)? X([0-9\.]+)(\s|$)", command)
@@ -18,6 +21,8 @@ def extract_coords(command):
     if ematch: coords[3] = float(ematch[2])
     return coords
 
+## Find the maximum, minimum, and average X, Y, and Z values
+## for the extruder in a GCODE file.
 def coord_stats(filename):
     xvals = []
     yvals = []
@@ -35,6 +40,8 @@ def coord_stats(filename):
     }
     return stats
 
+## Given a GCODE command and (optional) values of X, Y, Z, E,
+## substitute those values into the command.
 def substitute_coords(x, y, z, e, string):
     new_str = string
     if x: new_str = re.sub(r"X[0-9\-\.]+($|\s)", "X"+str(x)+" ", new_str)
@@ -43,6 +50,7 @@ def substitute_coords(x, y, z, e, string):
     if e: new_str = re.sub(r"E[0-9\-\.]+($|\s)", "E"+str(e)+" ", new_str)
     return new_str
 
+## Optionally remove the X, Y, Z, or E components of a GCODE command.
 def delete_coords(x, y, z, e, string):
     new_str = string
     if x: new_str = re.sub(r"X[0-9\-\.]+($|\s)", "", new_str)

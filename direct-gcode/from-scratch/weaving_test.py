@@ -1,43 +1,46 @@
 exec(open("Extruder.py").read())
 
-NUM_PILLARS = 6
-BASE_X = 50
-BASE_Y = 50
+## Parameters for the print
+NUM_PILLARS = 10
+BASE_X = 10
+BASE_Y = 10
 EXTRA_PILLAR_LAYERS = 5
 LAYER_HEIGHT = 0.2
 
+## Set up the extruder
 ext = Extruder(BASE_X, BASE_Y, 0.6)
 ext.set_density(0.05)
-
 ext.initialize()
 ext.feedrate(3000)
 
-##ext.rect_spiral(10, 10*NUM_PILLARS, 0.5)
-
+## Draw the base for the first fat pillar
 ext.goto(BASE_X, BASE_Y - 10)
 ext.lift(-0.4)
 ext.rect_spiral(10, 10, 0.4)
 ext.lift(0.4)
 
+## Draw the bases for each of the thin pillars
 for p in range(NUM_PILLARS):
     ext.goto(BASE_X + 2, BASE_Y + 2 + 10*p)
     ext.lift(-0.4)
     ext.rect_spiral(6, 6, 0.4)
     ext.lift(0.4)
 
+## Draw the base for the second fat pillar
 ext.goto(BASE_X, BASE_Y + 10*NUM_PILLARS)
 ext.lift(-0.4)
 ext.rect_spiral(10, 10, 0.4)
 ext.lift(0.4)
 
+## Calculate how much higher the thin pillars are than everything else
+## (used to help avoid collisions)
 clearance = LAYER_HEIGHT*EXTRA_PILLAR_LAYERS
 
-## Get a headstart on the thin middle pillars
+## Start building the thin pillars, while avoiding collisions
 ext.feedrate(3000)
 for l in range(EXTRA_PILLAR_LAYERS):
     for p in range(NUM_PILLARS):
         ext.lift(1)
-        ## ext.extrude(-0.1)
         ext.goto(BASE_X + 5, BASE_Y + 5 + 10*p)
         ext.lift(-1)
         ext.extrude(0.05)
@@ -94,6 +97,7 @@ for l in range(300):
         ext.goto(BASE_X, BASE_Y)
         ext.lift(-clearance-1)
 
+    ## Move up to next layer
     ext.lift(LAYER_HEIGHT)
 
 ext.finalize()
