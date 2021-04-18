@@ -1,9 +1,0 @@
-- write a .copy() method for Solid and Face (DONE)
-- write a .overwrite(solid) method for Solid that copies the solid efficiently by copying (clones of) its preexisting data structures, rather than rebuilding them from scratch (DONE)
-- implement ConvexSolid.add_hull_vertex and ConvexSolid.hull (DONE)
-- implement PlatonicSolid and ArchimedeanSolid by importing preexisting .solid files (DONE)
-- implement Conway polyhedron operators (again?!)
-- implement "face-smoothing" algorithm to eliminate degenerate faces if possible
-- find out how to convert my solids to a Rhino-compatible format
-- turn this into a real Python library that can be installed + imported
-- write several tutorials/example code snippets coupled with examples of interesting solids that can be generated

@@ -1,1 +1,17 @@
 Some notes about different types of ceramic 3D printers and their pros/cons.
+
+3D WASP PRINTERS:
+
+Delta WASP 2040 Clay
+about $3555
+44cm x 49cm x 87cm
+print up to 40cm in height
+accessible from 3 sides
+minimum layer height 0.5mm
+works with ceramic mixtures: clay, porcelain, gres, earthenware
+
+Delta WASP 40100 Clay
+about $8200
+77cm x 85cm x 195cm
+
+minimum layer height 0.5mm
