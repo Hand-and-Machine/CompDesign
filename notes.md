@@ -7,5 +7,16 @@ Notes on possible future class/research topics that Buechley suggested.
         - [Multi-shape active composites by 3D printing of digital shape memory polymers](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4829848/pdf/srep24224.pdf)
     - [Consistent concepts of self-organization and self-assembly](https://onlinelibrary.wiley.com/doi/abs/10.1002/cplx.20235)
     - [Self-assembly at the macroscopic scale](https://www.academia.edu/2813249/Self_assembly_at_the_macroscopic_scale)
+        - This paper focuses on macroscopic man-made self-assembling systems, not microscopic or naturally-occurring ones
+        - At the macroscopic scale, microscopic thermal effects are negligible, so external agitation of the system is required
+        - Penrose's simple 1D replicator - try to 3D print these pieces?
+        - Hokusawa self-assembling hexagons: triangular prisms with magnets of opposite orientation in two of their sides
+        - High-budget examples: contain programmable hardware/microcontrollers or switchable electromagnets
+        - White et al: communication between cubes allowed for synchronized disassembly and reassembly
+        - Much previous research has to do with large collections of simple robots (with very little functionality, e.g. simple docking functionality and some limited motor control) efficiently self-assembling by docking with each other
+        - Docking between pairs of robots can be difficult
+        - Random idea from me: one reason why it might be advantageous for robots to self-assemble into larger solids is to conserve heat - a set of N^3 cubical robots has a total surface area of 6N^3 when they are disassembled, but a surface area of only 6N^2 when they are assembled into a larger cube, meaning a slower rate of heat exchange with the environment 
 - Discrete fabrication
+    - Zome tools? Tangrams? Legos?
 - Ceramic 3D printing
+- Nontraditional printing materials
