@@ -16,7 +16,13 @@ Notes on possible future class/research topics that Buechley suggested.
         - Much previous research has to do with large collections of simple robots (with very little functionality, e.g. simple docking functionality and some limited motor control) efficiently self-assembling by docking with each other
         - Docking between pairs of robots can be difficult
         - Random idea from me: one reason why it might be advantageous for robots to self-assemble into larger solids is to conserve heat - a set of N^3 cubical robots has a total surface area of 6N^3 when they are disassembled, but a surface area of only 6N^2 when they are assembled into a larger cube, meaning a slower rate of heat exchange with the environment 
+    - **Question:** of the polyhedra that tesselate 3D space (e.g. tetrahedron, cube, hexagonal prism, rhombic dodecahedron, etc) which will "settle into" a tesselated configuration when placed into a bin and agitated? All of them? None of them?
 - Discrete fabrication
+    - Cardboard construction kit, suggested by Buechley: http://fab.cba.mit.edu/classes/863.12/people/charles.fracchia/wk1.html
     - Zome tools? Tangrams? Legos?
+    - This might fall more under "discrete design" rather than "discrete fabrication" - but it could be pretty cool to see what kind of aperiodic tilings result from different sets of generating tiles: https://en.wikipedia.org/wiki/List_of_aperiodic_sets_of_tiles
+        - Self-assembling tilings?
+    - Jigsaw puzzles?
+        - Could we design a jigsaw puzzle that can be assembled into two (or more) distinct solutions?
 - Ceramic 3D printing
 - Nontraditional printing materials
