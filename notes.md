@@ -25,4 +25,16 @@ Notes on possible future class/research topics that Buechley suggested.
     - Jigsaw puzzles?
         - Could we design a jigsaw puzzle that can be assembled into two (or more) distinct solutions?
 - Ceramic 3D printing
+    - FORMLABS 3D printer: https://formlabs.com/store/3d-printers/form-2/
+        - from $2400 to $2900 to $3500, good for printing smaller/finer objects
+        - other 3D printers from formlabs are extremely pricy!
+        - uses actual stereolithography
+        - ceramic resin designed for Form 2 printer: https://archive-media.formlabs.com/upload/ceramic-user-guide.pdf
+        - ceramic resin (for experimentation and prototyping) is $149/L, technical data about its physical properties can be found here: https://archive-media.formlabs.com/upload/Technical_Data_Sheet_EN_-_Ceramic.pdf
+    - CERAMBOT 3D printers: https://www.cerambot.com/store/
+        - CERAMBOT Pro is $700, CERAMBOT Air is $600
+            - Can also buy individual parts - are they included when you buy the full printer, or must they be purchased separately?
+        - Layer thickness between 0.1 and 2 mm
+        - Uses Kalonite HAP or other pastes
+        - Guide to clay for 3D printing: https://www.cerambot.com/clay-for-3d-printing/
 - Nontraditional printing materials
